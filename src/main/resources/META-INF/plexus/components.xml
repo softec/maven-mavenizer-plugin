@@ -1,0 +1,79 @@
+<!--
+  * See the NOTICE file distributed with this work for additional
+  * information regarding copyright ownership.
+  *
+  * This is free software; you can redistribute it and/or modify it
+  * under the terms of the GNU Lesser General Public License as
+  * published by the Free Software Foundation; either version 2.1 of
+  * the License, or (at your option) any later version.
+  *
+  * This software is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  * Lesser General Public License for more details.
+  *
+  * You should have received a copy of the GNU Lesser General Public
+  * License along with this software; if not, write to the Free
+  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+<component-set>
+  <components>
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>mavenize</role-hint>
+      <implementation>
+        org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
+      </implementation>
+      <configuration>
+        <phases>
+          <generate-sources>
+            lu.softec.maven:maven-mavenizer-plugin:download
+          </generate-sources>
+          <generate-resources>
+            lu.softec.maven:maven-mavenizer-plugin:analyse
+          </generate-resources>
+          <process-resources>
+            lu.softec.maven:maven-mavenizer-plugin:mavenize
+          </process-resources>
+          <install>
+            lu.softec.maven:maven-mavenizer-plugin:fileinstall
+          </install>
+          <deploy>
+            lu.softec.maven:maven-mavenizer-plugin:filedeploy
+          </deploy>
+        </phases>
+      </configuration>
+    </component>
+    <component>
+      <role>lu.softec.maven.mavenizer.mavenfile.MavenFileFactory</role>
+      <role-hint>default</role-hint>
+      <implementation>lu.softec.maven.mavenizer.mavenfile.internal.DefaultMavenFileFactory</implementation>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.project.validation.ModelValidator</role>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.shared.jar.identification.JarIdentificationAnalysis</role>
+        </requirement>
+      </requirements>
+    </component>
+    <component>
+      <role>lu.softec.maven.mavenizer.mavenfile.MavenFileParser</role>
+      <role-hint>default</role-hint>
+      <implementation>lu.softec.maven.mavenizer.mavenfile.internal.DefaultMavenFileParser</implementation>
+      <requirements>
+        <requirement>
+          <role>lu.softec.maven.mavenizer.mavenfile.MavenFileFactory</role>
+        </requirement>
+      </requirements>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+    <component>
+      <role>lu.softec.maven.mavenizer.mavenfile.MavenFileSerializer</role>
+      <role-hint>default</role-hint>
+      <implementation>lu.softec.maven.mavenizer.mavenfile.internal.DefaultMavenFileSerializer</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+  </components>
+</component-set>
