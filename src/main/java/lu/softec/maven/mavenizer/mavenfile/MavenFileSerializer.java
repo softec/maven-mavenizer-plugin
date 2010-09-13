@@ -18,6 +18,7 @@ package lu.softec.maven.mavenizer.mavenfile;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.codehaus.plexus.util.xml.pull.XmlSerializer;
 
 /**
@@ -68,4 +69,18 @@ public interface MavenFileSerializer
      * @throws IOException when an I/O error occurs during serialization
      */
     void SerializeMavenFileSet(MavenFileSet set) throws IOException;
+
+    /**
+     * Returns the local repository used for local artifacts
+     *
+     * @return the local repository used for local artifacts
+     */
+    ArtifactRepository getRepository();
+
+    /**
+     * Set the local repository used for local artifacts
+     *
+     * @param repository the local repository used for local artifacts
+     */
+    void setRepository(ArtifactRepository repository);
 }

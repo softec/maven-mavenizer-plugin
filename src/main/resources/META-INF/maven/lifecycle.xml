@@ -42,7 +42,7 @@
         </executions>
       </phase>
       <phase>
-        <id>process-resources</id>
+        <id>prepare-package</id>
         <executions>
           <execution>
             <goals>

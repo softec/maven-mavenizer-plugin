@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.codehaus.plexus.util.xml.pull.XmlSerializer;
 
 import lu.softec.maven.mavenizer.mavenfile.MavenFile;
@@ -35,6 +36,8 @@ public class DefaultMavenFileSerializer implements MavenFileSerializer
     private XmlSerializer serializer;
 
     private File baseDir = null;
+
+    private ArtifactRepository repository;
 
     public XmlSerializer getSerializer()
     {
@@ -56,11 +59,20 @@ public class DefaultMavenFileSerializer implements MavenFileSerializer
         this.baseDir = baseDir;
     }
 
+    public ArtifactRepository getRepository()
+    {
+        return repository;
+    }
+
+    public void setRepository(ArtifactRepository repository)
+    {
+        this.repository = repository;
+    }
+
     public void SerializeMavenFileSet(MavenFileSet set) throws IOException
     {
         serializer.startTag(null, MavenFileXmlMarkup.ARTIFACTS_TAG);
-        Iterator it = set.iterator();
-        while (it.hasNext()) {
+        for (Iterator it = set.iterator(); it.hasNext();) {
             MavenFile mvnFile = (MavenFile) it.next();
             SerializeMavenFile(mvnFile);
         }
@@ -69,24 +81,31 @@ public class DefaultMavenFileSerializer implements MavenFileSerializer
 
     public void SerializeMavenFile(MavenFile mvnFile) throws IOException
     {
-        serializer.startTag(null, MavenFileXmlMarkup.ARTIFACT_TAG)
-            .attribute(null, MavenFileXmlMarkup.NAME_ATTRIBUTE, relativePath(mvnFile));
+        serializer.startTag(null, MavenFileXmlMarkup.ARTIFACT_TAG);
+        writeNameAttribute(mvnFile);
         writeCoordinates(mvnFile);
 
-        Iterator it = mvnFile.getDependencies().iterator();
-        if (it.hasNext()) {
+        for (Iterator it = mvnFile.getDependencies().iterator(); it.hasNext();) {
             serializer.startTag(null, MavenFileXmlMarkup.DEPENDENCIES_TAG);
             while (it.hasNext()) {
                 MavenFile file = (MavenFile) it.next();
 
-                serializer.startTag(null, MavenFileXmlMarkup.DEPENDENCY_TAG)
-                    .attribute(null, MavenFileXmlMarkup.NAME_ATTRIBUTE, relativePath(file));
+                serializer.startTag(null, MavenFileXmlMarkup.DEPENDENCY_TAG);
+                writeNameAttribute(file);
                 writeCoordinates(file);
                 serializer.endTag(null, MavenFileXmlMarkup.DEPENDENCY_TAG);
             }
             serializer.endTag(null, MavenFileXmlMarkup.DEPENDENCIES_TAG);
         }
         serializer.endTag(null, MavenFileXmlMarkup.ARTIFACT_TAG);
+    }
+
+    private void writeNameAttribute(MavenFile mvnFile) throws IOException
+    {
+        String relativePath = relativePath(mvnFile);
+        if (relativePath != null) {
+            serializer.attribute(null, MavenFileXmlMarkup.NAME_ATTRIBUTE, relativePath);
+        }
     }
 
     private void writeCoordinates(MavenFile mvnFile) throws IOException
@@ -100,6 +119,10 @@ public class DefaultMavenFileSerializer implements MavenFileSerializer
     private String relativePath(MavenFile mvnFile)
     {
         String filePath = mvnFile.getFile().getAbsolutePath();
+        if (repository != null && filePath.startsWith(repository.getBasedir())) {
+            return null;
+        }
+
         if (baseDir == null) {
             return filePath;
         }

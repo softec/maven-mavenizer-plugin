@@ -17,7 +17,11 @@ package lu.softec.maven.mavenizer.mavenfile.internal;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -34,11 +38,30 @@ import lu.softec.maven.mavenizer.mavenfile.MavenFileSet;
  */
 public class DefaultMavenFileParser implements MavenFileParser
 {
+    /**
+     * MavenFileFactory populated by Plexus
+     */
     private MavenFileFactory mavenFileFactory;
 
+    /**
+     * xmlPullParser used for parsing
+     */
     private XmlPullParser xmlPullParser;
 
+    /**
+     * Base directory used for relative file name resolution
+     */
     private File baseDir;
+
+    /**
+     * Local artifact repository used to search for missing artifacts
+     */
+    private ArtifactRepository repository;
+
+    /**
+     * Remote repositories used to download missing artifacts
+     */
+    private List remoteRepositories;
 
     public XmlPullParser getXmlPullParser()
     {
@@ -60,6 +83,26 @@ public class DefaultMavenFileParser implements MavenFileParser
         this.baseDir = baseDir;
     }
 
+    public ArtifactRepository getRepository()
+    {
+        return repository;
+    }
+
+    public void setRepository(ArtifactRepository repository)
+    {
+        this.repository = repository;
+    }
+
+    public List getRemoteRepositories()
+    {
+        return Collections.unmodifiableList(remoteRepositories);
+    }
+
+    public void setRemoteRepositories(List remoteRepositories)
+    {
+        this.remoteRepositories = new ArrayList(remoteRepositories);
+    }
+
     public MavenFile getMavenFile()
         throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
     {
@@ -72,6 +115,17 @@ public class DefaultMavenFileParser implements MavenFileParser
         return getMavenFileSet(MavenFileXmlMarkup.ARTIFACTS_TAG, MavenFileXmlMarkup.ARTIFACT_TAG, true);
     }
 
+    /**
+     * Parse a set of maven file definition.
+     *
+     * @param tags list enclosing tags
+     * @param tag maven file definition enclosing tags
+     * @param withDeps when true, the definitions may contains dependencies
+     * @return a {@link MavenFileSet} representing the parsed list
+     * @throws XmlPullParserException when a parsing error occurs
+     * @throws IOException when an I/O error occurs
+     * @throws InvalidMavenCoordinatesException when the definition provide invalid maven coordinates
+     */
     private MavenFileSet getMavenFileSet(String tags, String tag, boolean withDeps)
         throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
     {
@@ -88,6 +142,16 @@ public class DefaultMavenFileParser implements MavenFileParser
         return ms;
     }
 
+    /**
+     * Parse a maven file definition enclosed between tags
+     *
+     * @param tag enclosing tags
+     * @param withDeps when true, the definition may contains dependencies
+     * @return the MavenFile represented by the parsed definition
+     * @throws XmlPullParserException when a parsing error occurs
+     * @throws IOException when an I/O error occurs
+     * @throws InvalidMavenCoordinatesException when the definition provide invalid maven coordinates
+     */
     private MavenFile getMavenFile(String tag, boolean withDeps)
         throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
     {
@@ -100,6 +164,15 @@ public class DefaultMavenFileParser implements MavenFileParser
         return mvnFile;
     }
 
+    /**
+     * Parse a maven file definition
+     *
+     * @param withDeps when true, the definition may contains dependencies
+     * @return the MavenFile represented by the parsed definition
+     * @throws XmlPullParserException when a parsing error occurs
+     * @throws IOException when an I/O error occurs
+     * @throws InvalidMavenCoordinatesException when the definition provide invalid maven coordinates
+     */
     private MavenFile getMavenFile(boolean withDeps)
         throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
     {
@@ -110,7 +183,7 @@ public class DefaultMavenFileParser implements MavenFileParser
         MavenFileSet deps = null;
         File file = getFile();
 
-        if (!file.isFile()) {
+        if (file != null && !file.isFile()) {
             throw new IOException(
                 "File " + file.getAbsolutePath() + " does not exists or is not a readable file.");
         }
@@ -133,7 +206,8 @@ public class DefaultMavenFileParser implements MavenFileParser
         }
 
         try {
-            return mavenFileFactory.getMavenFile(file, groupId, artifactId, version, classifier, deps);
+            return mavenFileFactory
+                .getMavenFile(file, groupId, artifactId, version, classifier, deps, repository, remoteRepositories);
         } catch (IllegalArgumentException e) {
             throw getParsingException(
                 "This declaration mismatch with a previously existing instance of file " +
@@ -141,16 +215,34 @@ public class DefaultMavenFileParser implements MavenFileParser
         }
     }
 
-    private File getFile() throws XmlPullParserException
+    /**
+     * Parse the name attribute when available and returns the corresponding file
+     *
+     * @return a {@link File} representing the name attribute or null if no attribute has been found
+     */
+    private File getFile()
     {
         String fileName = xmlPullParser.getAttributeValue(null, MavenFileXmlMarkup.NAME_ATTRIBUTE);
         if (fileName == null) {
             return null;
         }
 
+        File file = new File(fileName);
+
+        if (file.isAbsolute()) {
+            return file;
+        }
+
         return new File(baseDir, fileName);
     }
 
+    /**
+     * Parse a simple tagged string
+     *
+     * @return the string
+     * @throws IOException when an I/O error occurs
+     * @throws XmlPullParserException when a parsing error occurs
+     */
     private String getTaggedString() throws IOException, XmlPullParserException
     {
         xmlPullParser.require(XmlPullParser.START_TAG, null, null);

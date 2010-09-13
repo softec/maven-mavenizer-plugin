@@ -15,7 +15,6 @@
  */
 package lu.softec.maven.mavenizer;
 
-import java.io.File;
 import java.util.Iterator;
 
 import org.apache.maven.artifact.Artifact;
@@ -23,7 +22,6 @@ import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.installer.ArtifactInstallationException;
 import org.apache.maven.artifact.installer.ArtifactInstaller;
 import org.apache.maven.artifact.metadata.ArtifactMetadata;
-import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.artifact.ProjectArtifactMetadata;
@@ -50,38 +48,17 @@ public class FileInstallerMojo extends AbstractPomMavenizerMojo
     private ArtifactInstaller installer;
 
     /**
-     * @parameter expression="${localRepository}"
-     * @required
-     * @readonly
-     */
-    private ArtifactRepository localRepository;
-
-    /**
      * Whether to update the metadata to make installed artifacts a release version.
      *
      * @parameter expression="${updateReleaseInfo}" default-value="false"
      */
     private boolean updateReleaseInfo;
 
-    /**
-     * Gets the path of the specified artifact within the local repository. Note that the returned path need not exist
-     * (yet).
-     *
-     * @param artifact The artifact whose local repo path should be determined, must not be <code>null</code>.
-     * @return The absolute path to the artifact when installed, never <code>null</code>.
-     */
-    private File getLocalRepoFile(Artifact artifact)
-    {
-        String path = localRepository.pathOf(artifact);
-        return new File(localRepository.getBasedir(), path);
-    }
-
     public void execute() throws MojoExecutionException, MojoFailureException
     {
         MavenFileSet mavenLibs = getMavenizerConfig();
 
-        Iterator it = mavenLibs.iterator();
-        while (it.hasNext()) {
+        for (Iterator it = mavenLibs.iterator(); it.hasNext();) {
             MavenFile mvnFile = (MavenFile) it.next();
             installFile(mvnFile);
         }
@@ -107,7 +84,7 @@ public class FileInstallerMojo extends AbstractPomMavenizerMojo
         }
 
         try {
-            installer.install(mvnFile.getFile(), artifact, localRepository);
+            installer.install(mvnFile.getFile(), artifact, getLocalRepository());
         }
         catch (ArtifactInstallationException e) {
             throw new MojoExecutionException("Error installing artifact '" + artifact.getDependencyConflictId()

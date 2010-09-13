@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -62,6 +63,12 @@ public abstract class AbstractPomMavenizerMojo extends AbstractMavenizerMojo
      */
     private MavenFileParser mavenFileParser;
 
+    /**
+     * Parse the mavenizer configuration into a {@link MavenFileSet}
+     *
+     * @return the mavenizer configuration
+     * @throws MojoExecutionException when an issue occurs during parsing
+     */
     protected MavenFileSet getMavenizerConfig() throws MojoExecutionException
     {
         MavenFileSet mavenLibs;
@@ -74,6 +81,8 @@ public abstract class AbstractPomMavenizerMojo extends AbstractMavenizerMojo
             xpp.nextTag();
             mavenFileParser.setXmlPullParser(xpp);
             mavenFileParser.setBaseDir(getBinariesBaseDir());
+            mavenFileParser.setRepository(getLocalRepository());
+            mavenFileParser.setRemoteRepositories(getProject().getRemoteArtifactRepositories());
             mavenLibs = mavenFileParser.getMavenFileSet();
         } catch (IOException e) {
             throw new MojoExecutionException("Error while reading mavenizer configuration", e);
@@ -88,8 +97,27 @@ public abstract class AbstractPomMavenizerMojo extends AbstractMavenizerMojo
         return mavenLibs;
     }
 
+    /**
+     * Get the POM file from the pom base dir corresponding to a given maven file from the pom base dir
+     *
+     * @param mvnFile the maven file
+     * @return a File that may exist or not
+     */
     protected File getPomFile(MavenFile mvnFile)
     {
         return (new File(getPomBaseDir(), FileUtils.removeExtension(mvnFile.getFile().getName()) + ".pom"));
+    }
+
+    /**
+     * Gets the path of the specified artifact within the local repository. Note that the returned path need not exist
+     * (yet).
+     *
+     * @param artifact The artifact whose local repo path should be determined, must not be <code>null</code>.
+     * @return The absolute path to the artifact when installed, never <code>null</code>.
+     */
+    protected File getLocalRepoFile(Artifact artifact)
+    {
+        String path = getLocalRepository().pathOf(artifact);
+        return new File(getLocalRepository().getBasedir(), path);
     }
 }

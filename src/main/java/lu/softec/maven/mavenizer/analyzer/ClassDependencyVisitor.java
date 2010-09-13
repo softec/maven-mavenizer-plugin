@@ -29,7 +29,7 @@ public class ClassDependencyVisitor extends RemappingClassAdapter implements Fil
     /**
      * Internal {@link ClassDependencyVisitor.ClassDependencyRemapper} used to discover dependencies
      */
-    private static ClassDependencyRemapper depsRemapper = new ClassDependencyRemapper();
+    private static final ClassDependencyRemapper depsRemapper = new ClassDependencyRemapper();
 
     /**
      * Associated ClassAnalyser.
@@ -80,12 +80,15 @@ public class ClassDependencyVisitor extends RemappingClassAdapter implements Fil
 
     /**
      * Set the currently visited class name
+     *
+     * @param name the currently visited class name
      */
     private void setCurrentClass(String name)
     {
         currentClass = name;
         if (currentFile != null && analyser != null) {
             analyser.addClass(currentFile, name);
+            analyser.addDependency(currentClass, null);
         }
     }
 

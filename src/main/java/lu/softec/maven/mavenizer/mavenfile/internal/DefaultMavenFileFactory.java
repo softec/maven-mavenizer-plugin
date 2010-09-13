@@ -22,12 +22,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.validation.ModelValidationResult;
 import org.apache.maven.project.validation.ModelValidator;
 import org.apache.maven.shared.jar.JarAnalyzer;
 import org.apache.maven.shared.jar.identification.JarIdentification;
 import org.apache.maven.shared.jar.identification.JarIdentificationAnalysis;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 
 import lu.softec.maven.mavenizer.analyzer.FileDependencySet;
@@ -47,6 +54,16 @@ import lu.softec.maven.mavenizer.mavenfile.MavenFileSet;
 public class DefaultMavenFileFactory implements MavenFileFactory
 {
     /**
+     * Artifact Factory populated by Plexus
+     */
+    private ArtifactFactory artifactFactory;
+
+    /**
+     * Artifact Resolver populated by Plexus
+     */
+    private ArtifactResolver artifactResolver;
+
+    /**
      * ModelValidator populated by Plexus
      */
     private ModelValidator modelValidator;
@@ -64,7 +81,7 @@ public class DefaultMavenFileFactory implements MavenFileFactory
     /**
      * Map of all existing instances of {@link MavenFile} constructed by this factory
      */
-    private static Map mavenFiles = new HashMap();
+    private static final Map mavenFiles = new HashMap();
 
     public void addMavenInfo(FileMavenInfo info)
     {
@@ -80,15 +97,16 @@ public class DefaultMavenFileFactory implements MavenFileFactory
     {
         InternalMavenFileSet mavenFiles = new InternalMavenFileSet();
 
-        Iterator it = fileSet.iterator();
-        while (it.hasNext()) {
+        for (Iterator it = fileSet.iterator(); it.hasNext();) {
             FileDependencySet.FilePair pair = (FileDependencySet.FilePair) it.next();
 
             InternalMavenFile from = (InternalMavenFile) getMavenFile(pair.getFromFile());
-            MavenFile to = getMavenFile(pair.getToFile());
-
             mavenFiles.add(from);
-            from.addDependency(to);
+
+            if (pair.getToFile() != null) {
+                MavenFile to = getMavenFile(pair.getToFile());
+                from.addDependency(to);
+            }
         }
 
         return mavenFiles;
@@ -110,13 +128,37 @@ public class DefaultMavenFileFactory implements MavenFileFactory
             (info.getArtifactId() != null) ? info.getArtifactId() : id.getArtifactId(),
             (info.getVersion() != null) ? info.getVersion() : id.getVersion(),
             (info.getClassifier() != null) ? info.getClassifier() : null,
-            null
+            null, null, null
         );
     }
 
-    public MavenFile getMavenFile(File file, String groupId, String artifactId, String version, String classifier,
-        MavenFileSet deps) throws InvalidMavenCoordinatesException
+    public MavenFile getMavenFile(File libfile, String groupId, String artifactId, String version, String classifier,
+        MavenFileSet deps, ArtifactRepository repository, List remoteRepositories)
+        throws InvalidMavenCoordinatesException
     {
+        File file = libfile;
+
+        // If no local file is provided, try to resolve missing artifact from local or remote repositories
+        if (file == null) {
+            if (repository == null) {
+                return null;
+            }
+            Artifact artifact =
+                artifactFactory.createArtifactWithClassifier(groupId, artifactId, version, "jar", classifier);
+
+            if (!artifact.isResolved() && remoteRepositories != null) {
+                try {
+                    artifactResolver.resolve(artifact, remoteRepositories, repository);
+                } catch (ArtifactResolutionException e) {
+                    throw new InvalidMavenCoordinatesException(e);
+                } catch (ArtifactNotFoundException e) {
+                    throw new InvalidMavenCoordinatesException(e);
+                }
+            }
+            file = artifact.getFile();
+        }
+
+        // If maven file already exists, than check it for consistencies and return the existing one
         if (mavenFiles.containsKey(file)) {
             InternalMavenFile mvnFile = (InternalMavenFile) mavenFiles.get(file);
             if (!StringUtils.equals(mvnFile.getGroupId(), groupId)
@@ -137,10 +179,15 @@ public class DefaultMavenFileFactory implements MavenFileFactory
             return mvnFile;
         }
 
+        // Create a new maven file instance
         MavenFile mvnFile = new InternalMavenFile(file, groupId, artifactId, version, classifier, deps);
 
-        validateArtifactInformation(mvnFile);
+        // If the file has been provided, ensure proper maven coordinates has been used
+        if (libfile != null) {
+            validateArtifactInformation(mvnFile);
+        }
 
+        // Remember this new instance for future request
         mavenFiles.put(file, mvnFile);
         return mvnFile;
     }
@@ -172,7 +219,7 @@ public class DefaultMavenFileFactory implements MavenFileFactory
     public FileMavenInfo getFileMavenInfo(File file, String artifactId)
     {
         // Get file specific info
-        FileMavenInfo info = (FileMavenInfo) fileMavenInfo.get(file.getName());
+        FileMavenInfo info = (FileMavenInfo) fileMavenInfo.get(FileUtils.removeExtension(file.getName()));
         // Get artefact specific info
         if (info == null && artifactId != null) {
             info = (FileMavenInfo) fileMavenInfo.get(artifactId);

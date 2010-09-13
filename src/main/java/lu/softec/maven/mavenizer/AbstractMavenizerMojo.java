@@ -18,7 +18,9 @@ package lu.softec.maven.mavenizer;
 import java.io.File;
 import java.net.URL;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryWalkListener;
 import org.codehaus.plexus.util.DirectoryWalker;
 import org.codehaus.plexus.util.FileUtils;
@@ -69,6 +71,24 @@ public abstract class AbstractMavenizerMojo extends AbstractMojo
     private File archiveFile;
 
     /**
+     * Local repository
+     *
+     * @parameter expression="${localRepository}"
+     * @required
+     * @readonly
+     */
+    private ArtifactRepository localRepository;
+
+    /**
+     * Maven project
+     *
+     * @parameter default-value="${project}"
+     * @required
+     * @readonly
+     */
+    private MavenProject project;
+
+    /**
      * Return the base directory where the binaries of the project to be mavenized are stored.
      *
      * @return the base directory where the binaries of the project to be mavenized are stored.
@@ -78,6 +98,11 @@ public abstract class AbstractMavenizerMojo extends AbstractMojo
         return binariesBaseDir;
     }
 
+    /**
+     * Returns the file used to store the mavenizer analysis results and configuration
+     *
+     * @return the file used to store the mavenizer analysis results and configuration
+     */
     public File getMavenizerConfigFile()
     {
         return mavenizerConfigFile;
@@ -120,8 +145,31 @@ public abstract class AbstractMavenizerMojo extends AbstractMojo
         return archiveFile;
     }
 
+    /**
+     * Returns the current local repository
+     *
+     * @return the current local repository
+     */
+    public ArtifactRepository getLocalRepository()
+    {
+        return localRepository;
+    }
+
+    /**
+     * Returns the current maven project
+     *
+     * @return the current maven project
+     */
+    public MavenProject getProject()
+    {
+        return project;
+    }
+
     // Utility methods
 
+    /**
+     * Utility class representing a time range
+     */
     public static class TimeRange
     {
         private long lower;
@@ -145,6 +193,9 @@ public abstract class AbstractMavenizerMojo extends AbstractMojo
         }
     }
 
+    /**
+     * Listener class to compute the modification time range of a list of file
+     */
     private static class TimeRangeListener implements DirectoryWalkListener
     {
         private long lowerTime = Long.MAX_VALUE;
@@ -179,6 +230,12 @@ public abstract class AbstractMavenizerMojo extends AbstractMojo
         }
     }
 
+    /**
+     * Returns the modifications time range of files under a given directory
+     *
+     * @param file the directory to be scanned
+     * @return the modifications time range of files under a given directory or null if file is not a directory
+     */
     public static TimeRange getFilesModificationTimes(File file)
     {
         if (!file.isDirectory()) {
@@ -194,11 +251,23 @@ public abstract class AbstractMavenizerMojo extends AbstractMojo
         return listener.getModificationTimeRange();
     }
 
+    /**
+     * Returns the latest modification date of files under a given directory
+     *
+     * @param file the directory to be scanned
+     * @return the latest modification date of files under a given directory
+     */
     public static long getLatestFileModification(File file)
     {
         return getFilesModificationTimes(file).getHigher();
     }
 
+    /**
+     * Returns the earliest modification date of files under a given directory
+     *
+     * @param file the directory to be scanned
+     * @return the earliest modification date of files under a given directory
+     */
     public static long getEarliestFileModification(File file)
     {
         return getFilesModificationTimes(file).getLower();

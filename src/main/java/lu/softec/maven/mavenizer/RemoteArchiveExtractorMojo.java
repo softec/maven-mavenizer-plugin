@@ -45,8 +45,6 @@ public class RemoteArchiveExtractorMojo extends AbstractArchiveMavenizerMojo
     private ArchiverManager archiveManager;
 
     /**
-     * {@inheritDoc}
-     *
      * @throws MojoExecutionException if the operation fails, even partially
      */
     public void execute() throws MojoExecutionException

@@ -33,9 +33,9 @@
           <generate-resources>
             lu.softec.maven:maven-mavenizer-plugin:analyse
           </generate-resources>
-          <process-resources>
+          <prepare-package>
             lu.softec.maven:maven-mavenizer-plugin:mavenize
-          </process-resources>
+          </prepare-package>
           <install>
             lu.softec.maven:maven-mavenizer-plugin:fileinstall
           </install>
@@ -50,6 +50,12 @@
       <role-hint>default</role-hint>
       <implementation>lu.softec.maven.mavenizer.mavenfile.internal.DefaultMavenFileFactory</implementation>
       <requirements>
+        <requirement>
+          <role>org.apache.maven.artifact.factory.ArtifactFactory</role>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.artifact.resolver.ArtifactResolver</role>
+        </requirement>
         <requirement>
           <role>org.apache.maven.project.validation.ModelValidator</role>
         </requirement>
@@ -74,6 +80,17 @@
       <role-hint>default</role-hint>
       <implementation>lu.softec.maven.mavenizer.mavenfile.internal.DefaultMavenFileSerializer</implementation>
       <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+    <component>
+      <role>lu.softec.maven.mavenizer.mavenfile.DependencyWalker</role>
+      <role-hint>default</role-hint>
+      <implementation>lu.softec.maven.mavenizer.mavenfile.internal.DefaultDependencyWalker</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+      <requirements>
+        <requirement>
+          <role>lu.softec.maven.mavenizer.mavenfile.MavenFileFactory</role>
+        </requirement>
+      </requirements>
     </component>
   </components>
 </component-set>

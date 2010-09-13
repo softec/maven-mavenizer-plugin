@@ -17,7 +17,9 @@ package lu.softec.maven.mavenizer.mavenfile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.shared.jar.identification.JarIdentification;
 
 import lu.softec.maven.mavenizer.analyzer.FileDependencySet;
@@ -49,6 +51,8 @@ public interface MavenFileFactory
      * @param file the {@link File} to be mavenized
      * @return a {@link MavenFile} representing the provided {@link File}
      * @throws IOException when an I/O error occurs during access to the related files while analysing them.
+     * @throws InvalidMavenCoordinatesException when a {@link MavenFile} with an invalid set of coordinate would have
+     * been created
      */
     MavenFile getMavenFile(File file) throws IOException, InvalidMavenCoordinatesException;
 
@@ -61,6 +65,8 @@ public interface MavenFileFactory
      * @param version the version for this file
      * @param classifier the classifier for this file. May be null.
      * @param deps the dependencies of this file.
+     * @param repository local repository to look for missing artifacts
+     * @param repositories list of remote repositories to download missing artifacts
      * @return a {@link MavenFile} associating the {@link File} with the above coordinates and dependencies.
      * @throws InvalidMavenCoordinatesException when a {@link MavenFile} with an invalid set of coordinate would have
      * been created
@@ -68,7 +74,8 @@ public interface MavenFileFactory
      * current request
      */
     MavenFile getMavenFile(File file, String groupId, String artifactId, String version, String classifier,
-        MavenFileSet deps) throws InvalidMavenCoordinatesException;
+        MavenFileSet deps, ArtifactRepository repository, List remoteRepositories)
+        throws InvalidMavenCoordinatesException;
 
     /**
      * Provide hints to the factory for qualifying non-maven files when these are requested.

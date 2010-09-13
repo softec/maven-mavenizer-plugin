@@ -168,8 +168,7 @@ public class MavenFile implements Comparable
 
         model.setName(getArtifactId());
 
-        Iterator it = getDependencies().iterator();
-        while (it.hasNext()) {
+        for (Iterator it = getDependencies().iterator(); it.hasNext();) {
             MavenFile mvnFile = (MavenFile) it.next();
             Dependency dep = new Dependency();
             dep.setGroupId(mvnFile.getGroupId());

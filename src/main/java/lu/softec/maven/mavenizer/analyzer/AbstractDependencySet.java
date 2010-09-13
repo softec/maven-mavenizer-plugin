@@ -87,11 +87,8 @@ public abstract class AbstractDependencySet implements Set
     }
 
     /**
-     * {@inheritDoc}
-     *
      * @param o element whose presence in this set is to be tested. If this is not an instance of {@link
      * AbstractDependencySet.Pair}, always return false.
-     * @return {@inheritDoc}
      */
     public boolean contains(Object o)
     {
@@ -114,7 +111,7 @@ public abstract class AbstractDependencySet implements Set
     }
 
     /**
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean add(Object o)
     {
@@ -122,7 +119,7 @@ public abstract class AbstractDependencySet implements Set
     }
 
     /**
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean remove(Object o)
     {
@@ -131,9 +128,8 @@ public abstract class AbstractDependencySet implements Set
 
     public boolean containsAll(Collection c)
     {
-        Iterator iter = c.iterator();
-        while (iter.hasNext()) {
-            if (!(iter.next() instanceof Pair)) {
+        for (Iterator it = c.iterator(); it.hasNext();) {
+            if (!(it.next() instanceof Pair)) {
                 return false;
             }
         }
@@ -141,7 +137,7 @@ public abstract class AbstractDependencySet implements Set
     }
 
     /**
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean addAll(Collection c)
     {
@@ -149,7 +145,7 @@ public abstract class AbstractDependencySet implements Set
     }
 
     /**
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean retainAll(Collection c)
     {
@@ -157,7 +153,7 @@ public abstract class AbstractDependencySet implements Set
     }
 
     /**
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean removeAll(Collection c)
     {
@@ -165,7 +161,7 @@ public abstract class AbstractDependencySet implements Set
     }
 
     /**
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public void clear()
     {
@@ -212,10 +208,7 @@ public abstract class AbstractDependencySet implements Set
 
             Pair that = (Pair) o;
 
-            if (!getFromName().equals(that.getFromName())) {
-                return false;
-            }
-            return getToName().equals(that.getToName());
+            return getFromName().equals(that.getFromName()) && getToName().equals(that.getToName());
         }
 
         public int hashCode()
@@ -240,12 +233,18 @@ public abstract class AbstractDependencySet implements Set
             if (this.getFromName() == null) {
                 return -1;
             }
+            if (pair.getFromName() == null) {
+                return 1;
+            }
             int c = this.getFromName().compareTo(pair.getFromName());
             if (c != 0) {
                 return c;
             } else {
                 if (this.getToName() == null) {
                     return -1;
+                }
+                if (pair.getToName() == null) {
+                    return 1;
                 }
                 return this.getToName().compareTo(pair.getToName());
             }

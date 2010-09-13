@@ -236,7 +236,7 @@ public class ClassWalker
     /**
      * Add some file inclusion patterns
      *
-     * @param excludes array of file inclusion patterns
+     * @param includes array of file inclusion patterns
      */
     public void addIncludes(String[] includes)
     {
@@ -247,6 +247,11 @@ public class ClassWalker
         }
     }
 
+    /**
+     * Add a listener
+     *
+     * @param listener the listener to be added
+     */
     public void addLibraryWalkListener(ClassWalkListener listener)
     {
         walker.addDirectoryWalkListener(new LibraryWalkListenerWrapper(listener, debugMode));
@@ -265,7 +270,7 @@ public class ClassWalker
     /**
      * Add a file inclusion pattern
      *
-     * @param exclude the file inclusion pattern
+     * @param include the file inclusion pattern
      */
     public void addInclude(String include)
     {

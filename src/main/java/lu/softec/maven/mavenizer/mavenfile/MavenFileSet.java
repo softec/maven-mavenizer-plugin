@@ -61,11 +61,8 @@ public class MavenFileSet implements Set
     }
 
     /**
-     * {@inheritDoc}
-     *
      * @param o element whose presence in this set is to be tested. If this is not an instance of {@link MavenFile},
      * always return false.
-     * @return {@inheritDoc}
      */
     public boolean contains(Object o)
     {
@@ -88,9 +85,7 @@ public class MavenFileSet implements Set
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean add(Object o)
     {
@@ -98,9 +93,7 @@ public class MavenFileSet implements Set
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean remove(Object o)
     {
@@ -109,9 +102,8 @@ public class MavenFileSet implements Set
 
     public boolean containsAll(Collection c)
     {
-        Iterator iter = c.iterator();
-        while (iter.hasNext()) {
-            if (!(iter.next() instanceof MavenFile)) {
+        for (Iterator it = c.iterator(); it.hasNext();) {
+            if (!(it.next() instanceof MavenFile)) {
                 return false;
             }
         }
@@ -119,9 +111,7 @@ public class MavenFileSet implements Set
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean addAll(Collection c)
     {
@@ -129,9 +119,7 @@ public class MavenFileSet implements Set
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean retainAll(Collection c)
     {
@@ -139,9 +127,7 @@ public class MavenFileSet implements Set
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public boolean removeAll(Collection c)
     {
@@ -149,9 +135,7 @@ public class MavenFileSet implements Set
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @throw UnsupportedOperationException
+     * @throws UnsupportedOperationException
      */
     public void clear()
     {

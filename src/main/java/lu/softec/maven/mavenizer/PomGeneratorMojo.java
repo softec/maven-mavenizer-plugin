@@ -36,7 +36,7 @@ import lu.softec.maven.mavenizer.mavenfile.MavenFileSet;
  * Generate POM files based on the dependency analysis
  *
  * @goal mavenize
- * @phase process-resources
+ * @phase prepare-package
  */
 public class PomGeneratorMojo extends AbstractPomMavenizerMojo
 {
@@ -55,8 +55,6 @@ public class PomGeneratorMojo extends AbstractPomMavenizerMojo
     private MavenFileSerializer mavenFileSerializer;
 
     /**
-     * {@inheritDoc}
-     *
      * @throws org.apache.maven.plugin.MojoExecutionException if the operation fails, even partially
      */
     public void execute() throws MojoExecutionException, MojoFailureException
@@ -84,6 +82,13 @@ public class PomGeneratorMojo extends AbstractPomMavenizerMojo
         }
     }
 
+    /**
+     * Write the POM file corresponding to a given maven file
+     *
+     * @param mvnFile the maven file
+     * @param file the pom file to be written to
+     * @throws MojoExecutionException when any issue occurs
+     */
     private void writePomFile(MavenFile mvnFile, File file) throws MojoExecutionException
     {
         Model model = mvnFile.getModel();

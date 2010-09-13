@@ -77,11 +77,8 @@ public class ClassDependencySet extends AbstractDependencySet
     }
 
     /**
-     * {@inheritDoc}
-     *
      * @param o element whose presence in this set is to be tested. If this is not an instance of {@link
      * lu.softec.maven.mavenizer.analyzer.AbstractDependencySet.Pair}, always return false.
-     * @return {@inheritDoc}
      */
     public boolean contains(Object o)
     {
@@ -90,9 +87,8 @@ public class ClassDependencySet extends AbstractDependencySet
 
     public boolean containsAll(Collection c)
     {
-        Iterator iter = c.iterator();
-        while (iter.hasNext()) {
-            if (!(iter.next() instanceof ClassPair)) {
+        for (Iterator it = c.iterator(); it.hasNext();) {
+            if (!(it.next() instanceof ClassPair)) {
                 return false;
             }
         }

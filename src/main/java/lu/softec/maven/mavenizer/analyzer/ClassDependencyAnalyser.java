@@ -16,22 +16,31 @@
 package lu.softec.maven.mavenizer.analyzer;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+
+import org.codehaus.plexus.util.SelectorUtils;
 
 /**
  * Class dependency analyser
  *
  * Agregate and report dependencies found during class analysis.
  */
-public class ClassDependencyAnalyser implements ClassAnalyser
+public final class ClassDependencyAnalyser implements ClassAnalyser
 {
     /**
      * Internal Map from visited classes name to containing File
      */
     private final Map classes = new HashMap();
+
+    /**
+     * List of provided class patterns
+     */
+    private List providedClasses = new ArrayList();
 
     /**
      * Set of dependencies between classname
@@ -61,7 +70,7 @@ public class ClassDependencyAnalyser implements ClassAnalyser
 
     public boolean addDependency(String from, String to)
     {
-        if (from != null && to != null && classDeps.add(from, to)) {
+        if (from != null && (to == null || !matchProvidedClass(to)) && classDeps.add(from, to)) {
             resolved = false;
             return true;
         }
@@ -77,8 +86,7 @@ public class ClassDependencyAnalyser implements ClassAnalyser
         if (!resolved) {
             fileDeps.clean();
             unresolvedDeps.clean();
-            Iterator it = classDeps.iterator();
-            while (it.hasNext()) {
+            for (Iterator it = classDeps.iterator(); it.hasNext();) {
                 ClassDependencySet.ClassPair pair = (ClassDependencySet.ClassPair) it.next();
                 File from = (File) classes.get(pair.getFromName());
                 File to = (File) classes.get(pair.getToName());
@@ -86,20 +94,31 @@ public class ClassDependencyAnalyser implements ClassAnalyser
                     if (!from.equals(to)) {
                         fileDeps.add(from, to);
                     }
-                } else
-                    // TODO: Improve this !
-                    if (!pair.getToName().startsWith("java/")
-                        && !pair.getToName().startsWith("javax/")
-                        && !pair.getToName().startsWith("com/sun/")
-                        && !pair.getToName().startsWith("org/xml/sax/")
-                        && !pair.getToName().startsWith("org/omg/")
-                        && !pair.getToName().startsWith("org/w3c/dom/"))
-                    {
-                        unresolvedDeps.add(pair);
+                } else {
+                    if (pair.getToName() != null) {
+                        unresolvedDeps.add(new ClassDependencySet.ClassPair(pair.getToName(), pair.getFromName()));
                     }
+                }
             }
             resolved = true;
         }
+    }
+
+    /**
+     * Check a class name against the list of provided classes
+     *
+     * @param className class name to check
+     * @return true if class is provided
+     */
+    private boolean matchProvidedClass(String className)
+    {
+        for (Iterator it = providedClasses.iterator(); it.hasNext();) {
+            String s = (String) it.next();
+            if (SelectorUtils.matchPath(s, className, true)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -146,5 +165,15 @@ public class ClassDependencyAnalyser implements ClassAnalyser
     {
         resolveFileDependency();
         return unresolvedDeps;
+    }
+
+    /**
+     * Add a provided class pattern
+     *
+     * @param providedClass a pattern of class name to be ignore during resolution
+     */
+    public void addProvidedClasses(String providedClass)
+    {
+        this.providedClasses.add(providedClass);
     }
 }

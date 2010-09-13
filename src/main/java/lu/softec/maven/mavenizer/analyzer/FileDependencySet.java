@@ -77,11 +77,8 @@ public class FileDependencySet extends AbstractDependencySet
     }
 
     /**
-     * {@inheritDoc}
-     *
      * @param o element whose presence in this set is to be tested. If this is not an instance of {@link
      * FileDependencySet.FilePair}, always return false.
-     * @return {@inheritDoc}
      */
     public boolean contains(Object o)
     {
@@ -90,9 +87,8 @@ public class FileDependencySet extends AbstractDependencySet
 
     public boolean containsAll(Collection c)
     {
-        Iterator iter = c.iterator();
-        while (iter.hasNext()) {
-            if (!(iter.next() instanceof FilePair)) {
+        for (Iterator it = c.iterator(); it.hasNext();) {
+            if (!(it.next() instanceof FilePair)) {
                 return false;
             }
         }
@@ -133,6 +129,9 @@ public class FileDependencySet extends AbstractDependencySet
          */
         public String getFromName()
         {
+            if (fromFile == null) {
+                return null;
+            }
             return fromFile.getAbsolutePath();
         }
 
@@ -143,6 +142,9 @@ public class FileDependencySet extends AbstractDependencySet
          */
         public String getToName()
         {
+            if (toFile == null) {
+                return null;
+            }
             return toFile.getAbsolutePath();
         }
 

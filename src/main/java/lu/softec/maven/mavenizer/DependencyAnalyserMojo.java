@@ -32,6 +32,7 @@ import lu.softec.maven.mavenizer.analyzer.ClassDependencySet;
 import lu.softec.maven.mavenizer.analyzer.ClassWalkDependencyListener;
 import lu.softec.maven.mavenizer.analyzer.ClassWalkInventoryListener;
 import lu.softec.maven.mavenizer.analyzer.ClassWalker;
+import lu.softec.maven.mavenizer.mavenfile.DependencyWalker;
 import lu.softec.maven.mavenizer.mavenfile.FileMavenInfo;
 import lu.softec.maven.mavenizer.mavenfile.MavenFileFactory;
 import lu.softec.maven.mavenizer.mavenfile.MavenFileSerializer;
@@ -52,6 +53,20 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
     private FileMavenInfo[] artifacts;
 
     /**
+     * Selectors of provided classes, could be used to avoid reporting missing dependency.
+     *
+     * @parameter
+     */
+    private String[] jvmProvidedClasses;
+
+    /**
+     * Selectors of provided classes, could be used to avoid reporting missing dependency.
+     *
+     * @parameter
+     */
+    private String[] providedClasses;
+
+    /**
      * Maven file factory
      *
      * @component role="lu.softec.maven.mavenizer.mavenfile.MavenFileFactory"
@@ -66,18 +81,41 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
     private MavenFileSerializer mavenFileSerializer;
 
     /**
-     * {@inheritDoc}
+     * Maven dependency walker
      *
+     * @component role="lu.softec.maven.mavenizer.mavenfile.DependencyWalker"
+     */
+    private DependencyWalker dependencyWalker;
+
+    /**
+     * Default pattern for the JVM provided class
+     */
+    private static final String[] JVM_PROVIDED_CLASS = {
+        "java/**/*",
+        "javax/**/*",
+        "com/sun/**/*",
+        "org/xml/sax/**/*",
+        "org/w3c/dom/**/*",
+        "org/ietf/jgss/*",
+        "sunw/io/*",
+        "sunw/util/*"
+    };
+
+    /**
      * @throws MojoExecutionException if the operation fails, even partially
      */
     public void execute() throws MojoExecutionException, MojoFailureException
     {
+        // Check for changes and skip execution when uneeded
         if (getLatestFileModification(getBinariesBaseDir()) < getMavenizerConfigFile().lastModified()) {
             getLog().info("No changes in binaries detected, skipping dependency analysis.");
             return;
         }
 
+        // Analyse dependencies
         ClassDependencyAnalyser analyser = new ClassDependencyAnalyser();
+        addJvmProvidedClass(analyser);
+        addProvidedClass(analyser);
 
         ClassWalker libs = getLibsWalker();
         libs.addLibraryWalkListener(new ClassWalkDependencyListener(analyser, getLog()));
@@ -91,9 +129,19 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
             deps.scan();
         }
 
+        if (getProject().getDependencies() != null && getProject().getDependencies().size() > 0) {
+            dependencyWalker.setDependencies(getProject().getDependencies());
+            dependencyWalker.setRepository(getLocalRepository());
+            dependencyWalker.setRemoteRepositories(getProject().getRemoteArtifactRepositories());
+            dependencyWalker.addLibraryWalkListener(new ClassWalkInventoryListener(analyser, getLog()));
+            dependencyWalker.scan();
+        }
+
+        // Write resulting configuration
         try {
             Writer writer = null;
             try {
+                getMavenizerConfigFile().getParentFile().mkdirs();
                 writer = WriterFactory.newXmlWriter(getMavenizerConfigFile());
                 XmlSerializer serializer = new MXSerializer();
                 serializer.setProperty("http://xmlpull.org/v1/doc/properties.html#serializer-indentation", "  ");
@@ -104,6 +152,7 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
                 populateJarInfo();
                 mavenFileSerializer.setSerializer(serializer);
                 mavenFileSerializer.setBaseDir(getBinariesBaseDir());
+                mavenFileSerializer.setRepository(getLocalRepository());
                 mavenFileSerializer
                     .SerializeMavenFileSet(mavenFileFactory.getMavenFileSet(analyser.getFileDependencies()));
 
@@ -122,11 +171,12 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
             throw new MojoExecutionException("Error while dumping the mavenizer configuration", e);
         }
 
-        getLog().info("Unresolved results:");
-        Iterator it = analyser.getUnresolvedDependencies().iterator();
-        while (it.hasNext()) {
+        // Reports unresolved classes
+        getLog().info("Unresolved classes:");
+        for (Iterator it = analyser.getUnresolvedDependencies().iterator(); it.hasNext();) {
             ClassDependencySet.Pair pair = (ClassDependencySet.Pair) it.next();
-            getLog().info(pair.getFromName() + " -> " + pair.getToName());
+            getLog().info(
+                pair.getFromName().replace('/', '.') + " (referenced by " + pair.getToName().replace('/', '.') + ")");
         }
     }
 
@@ -148,6 +198,40 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
                 throw new MojoExecutionException("Duplicate artifact information for " +
                     ((this.artifacts[i].getName() != null) ? this.artifacts[i].getName() : "default values."));
             }
+        }
+    }
+
+    /**
+     * Feed analyser with the list of JVM provided class selector patterns.
+     *
+     * @param analyser class dependency analyser to feed
+     */
+    public void addJvmProvidedClass(ClassDependencyAnalyser analyser)
+    {
+        if (jvmProvidedClasses == null) {
+            for (int i = 0; i < JVM_PROVIDED_CLASS.length; i++) {
+                analyser.addProvidedClasses(JVM_PROVIDED_CLASS[i]);
+            }
+        } else {
+            for (int i = 0; i < jvmProvidedClasses.length; i++) {
+                analyser.addProvidedClasses(jvmProvidedClasses[i].replace('.', '/'));
+            }
+        }
+    }
+
+    /**
+     * Feed analyser with the list of provided class selector patterns.
+     *
+     * @param analyser class dependency analyser to feed
+     */
+    public void addProvidedClass(ClassDependencyAnalyser analyser)
+    {
+        if (providedClasses == null) {
+            return;
+        }
+
+        for (int i = 0; i < providedClasses.length; i++) {
+            analyser.addProvidedClasses(providedClasses[i].replace('.', '/'));
         }
     }
 

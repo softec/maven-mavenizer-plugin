@@ -25,7 +25,7 @@ import org.apache.maven.plugin.logging.Log;
  */
 public class ClassWalkDependencyListener extends AbstractClassWalkVisitorListener
 {
-    Log logger;
+    protected final Log logger;
 
     public ClassWalkDependencyListener(ClassDependencyAnalyser analyser, Log logger)
     {

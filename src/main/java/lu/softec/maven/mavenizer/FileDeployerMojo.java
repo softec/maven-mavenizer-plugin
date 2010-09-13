@@ -76,13 +76,6 @@ public class FileDeployerMojo extends AbstractPomMavenizerMojo
     private boolean offline;
 
     /**
-     * @parameter expression="${localRepository}"
-     * @required
-     * @readonly
-     */
-    private ArtifactRepository localRepository;
-
-    /**
      * Server Id to map on the &lt;id&gt; under &lt;server&gt; section of settings.xml In most cases, this parameter
      * will be required for authentication.
      *
@@ -121,19 +114,6 @@ public class FileDeployerMojo extends AbstractPomMavenizerMojo
      */
     private boolean updateReleaseInfo;
 
-    /**
-     * Gets the path of the specified artifact within the local repository. Note that the returned path need not exist
-     * (yet).
-     *
-     * @param artifact The artifact whose local repo path should be determined, must not be <code>null</code>.
-     * @return The absolute path to the artifact when installed, never <code>null</code>.
-     */
-    private File getLocalRepoFile(Artifact artifact)
-    {
-        String path = localRepository.pathOf(artifact);
-        return new File(localRepository.getBasedir(), path);
-    }
-
     private void failIfOffline() throws MojoFailureException
     {
         if (offline) {
@@ -158,8 +138,7 @@ public class FileDeployerMojo extends AbstractPomMavenizerMojo
 
         MavenFileSet mavenLibs = getMavenizerConfig();
 
-        Iterator it = mavenLibs.iterator();
-        while (it.hasNext()) {
+        for (Iterator it = mavenLibs.iterator(); it.hasNext();) {
             MavenFile mvnFile = (MavenFile) it.next();
             deployFile(mvnFile);
         }
@@ -201,7 +180,7 @@ public class FileDeployerMojo extends AbstractPomMavenizerMojo
         }
 
         try {
-            deployer.deploy(mvnFile.getFile(), artifact, deploymentRepository, localRepository);
+            deployer.deploy(mvnFile.getFile(), artifact, deploymentRepository, getLocalRepository());
         }
         catch (ArtifactDeploymentException e) {
             throw new MojoExecutionException(e.getMessage(), e);

@@ -17,7 +17,9 @@ package lu.softec.maven.mavenizer.mavenfile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -83,4 +85,32 @@ public interface MavenFileParser
      * been created
      */
     MavenFileSet getMavenFileSet() throws XmlPullParserException, IOException, InvalidMavenCoordinatesException;
+
+    /**
+     * Returns the local repository used to resolved missing files
+     *
+     * @return the local repository used to resolved missing files
+     */
+    ArtifactRepository getRepository();
+
+    /**
+     * Set the local repository used to resolved missing files
+     *
+     * @param repository the local repository used to resolved missing files
+     */
+    void setRepository(ArtifactRepository repository);
+
+    /**
+     * Returns the remote repositories used to download missing files
+     *
+     * @return the remote repositories used to download missing files
+     */
+    List getRemoteRepositories();
+
+    /**
+     * Set the remote repositories used to download missing files
+     *
+     * @param remoteRepositories the remote repositories used to download missing files
+     */
+    void setRemoteRepositories(List remoteRepositories);
 }
