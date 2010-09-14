@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -69,7 +71,9 @@ public interface MavenFileParser
      * @throws InvalidMavenCoordinatesException when a {@link MavenFile} with an invalid set of coordinate would have
      * been created
      */
-    MavenFile getMavenFile() throws XmlPullParserException, IOException, InvalidMavenCoordinatesException;
+    MavenFile getMavenFile()
+        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException, ArtifactResolutionException,
+        ArtifactNotFoundException;
 
     /**
      * Read a {@link MavenFileSet} from the parser
@@ -84,7 +88,9 @@ public interface MavenFileParser
      * @throws InvalidMavenCoordinatesException when a {@link MavenFile} with an invalid set of coordinate would have
      * been created
      */
-    MavenFileSet getMavenFileSet() throws XmlPullParserException, IOException, InvalidMavenCoordinatesException;
+    MavenFileSet getMavenFileSet()
+        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException, ArtifactResolutionException,
+        ArtifactNotFoundException;
 
     /**
      * Returns the local repository used to resolved missing files

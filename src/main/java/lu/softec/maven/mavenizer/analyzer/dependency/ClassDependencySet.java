@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lu.softec.maven.mavenizer.analyzer;
+package lu.softec.maven.mavenizer.analyzer.dependency;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -21,7 +21,7 @@ import java.util.Iterator;
 /**
  * Specialized Set to store class dependencies.
  *
- * This class is only mutable in the current package, and is protected from mutability in another package.
+ * This class is only mutable in the current package, and is immutable in another package.
  */
 public class ClassDependencySet extends AbstractDependencySet
 {
@@ -64,8 +64,8 @@ public class ClassDependencySet extends AbstractDependencySet
     /**
      * Add a new dependency
      *
-     * @param pair a {@link lu.softec.maven.mavenizer.analyzer.AbstractDependencySet.Pair} reprensenting the dependency
-     * to add
+     * @param pair a {@link lu.softec.maven.mavenizer.analyzer.dependency.AbstractDependencySet.Pair} reprensenting the
+     * dependency to add
      * @return if the set has been changed
      */
     boolean add(Pair pair)
@@ -78,7 +78,7 @@ public class ClassDependencySet extends AbstractDependencySet
 
     /**
      * @param o element whose presence in this set is to be tested. If this is not an instance of {@link
-     * lu.softec.maven.mavenizer.analyzer.AbstractDependencySet.Pair}, always return false.
+     * lu.softec.maven.mavenizer.analyzer.dependency.AbstractDependencySet.Pair}, always return false.
      */
     public boolean contains(Object o)
     {

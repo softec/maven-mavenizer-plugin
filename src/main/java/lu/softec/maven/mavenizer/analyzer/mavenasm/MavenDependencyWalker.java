@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lu.softec.maven.mavenizer.mavenfile;
+package lu.softec.maven.mavenizer.analyzer.mavenasm;
 
 import java.util.List;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
 
-import lu.softec.maven.mavenizer.analyzer.ClassWalkListener;
+import lu.softec.maven.mavenizer.analyzer.ClassWalker;
 
 /**
  * This interface is similar to the ClassWalker interface, but on a list of maven dependencies.
  */
-public interface DependencyWalker
+public interface MavenDependencyWalker extends ClassWalker
 {
     /**
      * Returns the list of {@link org.apache.maven.model.Dependency} that is walked
@@ -67,16 +67,4 @@ public interface DependencyWalker
      * @param remoteArtifactRepositories the list of remote repositories where dependencies could be downloaded
      */
     void setRemoteRepositories(List remoteArtifactRepositories);
-
-    /**
-     * Add a listener
-     *
-     * @param listener listener to be added
-     */
-    void addLibraryWalkListener(ClassWalkListener listener);
-
-    /**
-     * Scan the list of dependencies, processing each class.
-     */
-    void scan();
 }

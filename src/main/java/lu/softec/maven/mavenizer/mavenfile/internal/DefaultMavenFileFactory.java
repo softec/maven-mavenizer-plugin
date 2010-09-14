@@ -37,7 +37,7 @@ import org.apache.maven.shared.jar.identification.JarIdentificationAnalysis;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 
-import lu.softec.maven.mavenizer.analyzer.FileDependencySet;
+import lu.softec.maven.mavenizer.analyzer.dependency.FileDependencySet;
 import lu.softec.maven.mavenizer.mavenfile.FileMavenInfo;
 import lu.softec.maven.mavenizer.mavenfile.InvalidMavenCoordinatesException;
 import lu.softec.maven.mavenizer.mavenfile.MavenFile;
@@ -93,7 +93,8 @@ public class DefaultMavenFileFactory implements MavenFileFactory
         return (FileMavenInfo) fileMavenInfo.get(name);
     }
 
-    public MavenFileSet getMavenFileSet(FileDependencySet fileSet) throws IOException, InvalidMavenCoordinatesException
+    public MavenFileSet getMavenFileSet(FileDependencySet fileSet)
+        throws IOException, InvalidMavenCoordinatesException, ArtifactResolutionException, ArtifactNotFoundException
     {
         InternalMavenFileSet mavenFiles = new InternalMavenFileSet();
 
@@ -112,7 +113,8 @@ public class DefaultMavenFileFactory implements MavenFileFactory
         return mavenFiles;
     }
 
-    public MavenFile getMavenFile(File file) throws IOException, InvalidMavenCoordinatesException
+    public MavenFile getMavenFile(File file)
+        throws IOException, InvalidMavenCoordinatesException, ArtifactResolutionException, ArtifactNotFoundException
     {
         if (mavenFiles.containsKey(file)) {
             return (MavenFile) mavenFiles.get(file);
@@ -134,7 +136,7 @@ public class DefaultMavenFileFactory implements MavenFileFactory
 
     public MavenFile getMavenFile(File libfile, String groupId, String artifactId, String version, String classifier,
         MavenFileSet deps, ArtifactRepository repository, List remoteRepositories)
-        throws InvalidMavenCoordinatesException
+        throws InvalidMavenCoordinatesException, ArtifactResolutionException, ArtifactNotFoundException
     {
         File file = libfile;
 
@@ -147,15 +149,14 @@ public class DefaultMavenFileFactory implements MavenFileFactory
                 artifactFactory.createArtifactWithClassifier(groupId, artifactId, version, "jar", classifier);
 
             if (!artifact.isResolved() && remoteRepositories != null) {
-                try {
-                    artifactResolver.resolve(artifact, remoteRepositories, repository);
-                } catch (ArtifactResolutionException e) {
-                    throw new InvalidMavenCoordinatesException(e);
-                } catch (ArtifactNotFoundException e) {
-                    throw new InvalidMavenCoordinatesException(e);
-                }
+                artifactResolver.resolve(artifact, remoteRepositories, repository);
             }
             file = artifact.getFile();
+
+            if (file == null) {
+                // Should never happen
+                throw new ArtifactNotFoundException("No file available after artifact resolution", artifact);
+            }
         }
 
         // If maven file already exists, than check it for consistencies and return the existing one

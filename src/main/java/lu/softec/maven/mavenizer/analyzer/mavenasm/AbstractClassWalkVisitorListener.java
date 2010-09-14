@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lu.softec.maven.mavenizer.analyzer;
+package lu.softec.maven.mavenizer.analyzer.mavenasm;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.objectweb.asm.ClassReader;
 
+import lu.softec.maven.mavenizer.analyzer.AbstractClassWalkListener;
+import lu.softec.maven.mavenizer.analyzer.ClassWalkerRuntimeException;
+
 /**
- * Abstract class extending {@link AbstractClassWalkListener} and providing basic functionalities to parse classes using
- * a {@link org.objectweb.asm.ClassReader} and a {@link FileAwareClassVisitor}.
+ * Abstract class extending {@link lu.softec.maven.mavenizer.analyzer.AbstractClassWalkListener} and providing basic
+ * functionalities to parse classes using a {@link org.objectweb.asm.ClassReader} and a {@link FileAwareClassVisitor}.
  *
  * Derived class should at least implements error of the ClassWalkListener interface for error reporting.
  *
@@ -69,7 +72,7 @@ public abstract class AbstractClassWalkVisitorListener extends AbstractClassWalk
             visitor.setClassPosition(-1);
             incrementClassCount();
         } catch (IOException e) {
-            error(getCurrentFile(), e);
+            throw new ClassWalkerRuntimeException(getCurrentFile(), e);
         }
     }
 }

@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lu.softec.maven.mavenizer.analyzer;
+package lu.softec.maven.mavenizer.analyzer.mavenasm;
 
 import java.io.File;
 
 import org.objectweb.asm.commons.EmptyVisitor;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.commons.RemappingClassAdapter;
+
+import lu.softec.maven.mavenizer.analyzer.ClassAnalyser;
 
 /**
  * Implements a FileAwareClassVisitor that agregate dependencies in a ClassAnalyser

@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.InputStream;
 
 /**
- * Interface that should be implemented for listening {@link ClassWalker} events
+ * Interface that should be implemented for listening {@link ClassDirectoryWalker} events
  */
 public interface ClassWalkListener
 {
@@ -57,14 +57,6 @@ public interface ClassWalkListener
      * Called once when a walk is finished
      */
     void libraryWalkFinished();
-
-    /**
-     * Called when an error occurs during a walk.
-     *
-     * @param file the current file being walked
-     * @param t the throwable containing the current error
-     */
-    void error(File file, Throwable t);
 
     /**
      * Called when a debug message is issued

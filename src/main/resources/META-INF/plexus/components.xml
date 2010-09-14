@@ -82,9 +82,9 @@
       <instantiation-strategy>per-lookup</instantiation-strategy>
     </component>
     <component>
-      <role>lu.softec.maven.mavenizer.mavenfile.DependencyWalker</role>
+      <role>lu.softec.maven.mavenizer.analyzer.mavenasm.MavenDependencyWalker</role>
       <role-hint>default</role-hint>
-      <implementation>lu.softec.maven.mavenizer.mavenfile.internal.DefaultDependencyWalker</implementation>
+      <implementation>lu.softec.maven.mavenizer.analyzer.mavenasm.DefaultMavenDependencyWalker</implementation>
       <instantiation-strategy>per-lookup</instantiation-strategy>
       <requirements>
         <requirement>

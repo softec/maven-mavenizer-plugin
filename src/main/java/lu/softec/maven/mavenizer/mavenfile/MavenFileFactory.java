@@ -20,9 +20,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.shared.jar.identification.JarIdentification;
 
-import lu.softec.maven.mavenizer.analyzer.FileDependencySet;
+import lu.softec.maven.mavenizer.analyzer.dependency.FileDependencySet;
 
 /**
  * Factory for creating unique and consistant MavenFile instances
@@ -37,12 +39,13 @@ public interface MavenFileFactory
      * Convert a {@link FileDependencySet} into a {@link MavenFileSet}.
      *
      * @param fileSet the {@link FileDependencySet} to convert
-     * @return a {@link MavenFileSet} representing the provided {@link FileDependencySet}
+     * @return a {@link MavenFileSet} representing the provided {@link lu.softec.maven.mavenizer.analyzer.dependency.FileDependencySet}
      * @throws IOException when an I/O error occurs during access to the related files while analysing them.
      * @throws InvalidMavenCoordinatesException when a {@link MavenFile} with an invalid set of coordinate would have
      * been created
      */
-    MavenFileSet getMavenFileSet(FileDependencySet fileSet) throws IOException, InvalidMavenCoordinatesException;
+    MavenFileSet getMavenFileSet(FileDependencySet fileSet)
+        throws IOException, InvalidMavenCoordinatesException, ArtifactResolutionException, ArtifactNotFoundException;
 
     /**
      * Convert a simple {@link File} into a {@link MavenFile} by analysing the file. Obviously, this could only works
@@ -54,7 +57,8 @@ public interface MavenFileFactory
      * @throws InvalidMavenCoordinatesException when a {@link MavenFile} with an invalid set of coordinate would have
      * been created
      */
-    MavenFile getMavenFile(File file) throws IOException, InvalidMavenCoordinatesException;
+    MavenFile getMavenFile(File file)
+        throws IOException, InvalidMavenCoordinatesException, ArtifactResolutionException, ArtifactNotFoundException;
 
     /**
      * Associate a {@link File} with its Maven coordinates and dependencies
@@ -75,7 +79,7 @@ public interface MavenFileFactory
      */
     MavenFile getMavenFile(File file, String groupId, String artifactId, String version, String classifier,
         MavenFileSet deps, ArtifactRepository repository, List remoteRepositories)
-        throws InvalidMavenCoordinatesException;
+        throws InvalidMavenCoordinatesException, ArtifactResolutionException, ArtifactNotFoundException;
 
     /**
      * Provide hints to the factory for qualifying non-maven files when these are requested.

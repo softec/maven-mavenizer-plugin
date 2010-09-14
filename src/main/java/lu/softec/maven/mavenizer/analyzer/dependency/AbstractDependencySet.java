@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lu.softec.maven.mavenizer.analyzer;
+package lu.softec.maven.mavenizer.analyzer.dependency;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -24,7 +24,7 @@ import java.util.TreeSet;
  * Abstract class for specialized Set to store dependencies.
  *
  * This a wrapper class over a ordered set used to store dependency relations between two indentified objects This class
- * is only mutable in the current package, and is protected from mutability from another package.
+ * is only mutable in the current package, and is immutable in another package.
  */
 public abstract class AbstractDependencySet implements Set
 {

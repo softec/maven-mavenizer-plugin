@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -104,13 +106,15 @@ public class DefaultMavenFileParser implements MavenFileParser
     }
 
     public MavenFile getMavenFile()
-        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
+        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException, ArtifactResolutionException,
+        ArtifactNotFoundException
     {
         return getMavenFile(MavenFileXmlMarkup.ARTIFACT_TAG, false);
     }
 
     public MavenFileSet getMavenFileSet()
-        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
+        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException, ArtifactResolutionException,
+        ArtifactNotFoundException
     {
         return getMavenFileSet(MavenFileXmlMarkup.ARTIFACTS_TAG, MavenFileXmlMarkup.ARTIFACT_TAG, true);
     }
@@ -127,7 +131,8 @@ public class DefaultMavenFileParser implements MavenFileParser
      * @throws InvalidMavenCoordinatesException when the definition provide invalid maven coordinates
      */
     private MavenFileSet getMavenFileSet(String tags, String tag, boolean withDeps)
-        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
+        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException, ArtifactResolutionException,
+        ArtifactNotFoundException
     {
         InternalMavenFileSet ms = new InternalMavenFileSet();
 
@@ -153,7 +158,8 @@ public class DefaultMavenFileParser implements MavenFileParser
      * @throws InvalidMavenCoordinatesException when the definition provide invalid maven coordinates
      */
     private MavenFile getMavenFile(String tag, boolean withDeps)
-        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
+        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException, ArtifactResolutionException,
+        ArtifactNotFoundException
     {
         xmlPullParser.require(XmlPullParser.START_TAG, null, tag);
 
@@ -174,7 +180,8 @@ public class DefaultMavenFileParser implements MavenFileParser
      * @throws InvalidMavenCoordinatesException when the definition provide invalid maven coordinates
      */
     private MavenFile getMavenFile(boolean withDeps)
-        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException
+        throws XmlPullParserException, IOException, InvalidMavenCoordinatesException, ArtifactResolutionException,
+        ArtifactNotFoundException
     {
         String groupId = null;
         String artifactId = null;

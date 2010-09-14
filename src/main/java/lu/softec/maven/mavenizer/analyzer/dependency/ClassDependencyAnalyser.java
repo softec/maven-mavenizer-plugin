@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lu.softec.maven.mavenizer.analyzer;
+package lu.softec.maven.mavenizer.analyzer.dependency;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.codehaus.plexus.util.SelectorUtils;
+
+import lu.softec.maven.mavenizer.analyzer.ClassAnalyser;
 
 /**
  * Class dependency analyser

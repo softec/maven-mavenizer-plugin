@@ -27,12 +27,14 @@ import org.codehaus.plexus.util.WriterFactory;
 import org.codehaus.plexus.util.xml.pull.MXSerializer;
 import org.codehaus.plexus.util.xml.pull.XmlSerializer;
 
-import lu.softec.maven.mavenizer.analyzer.ClassDependencyAnalyser;
-import lu.softec.maven.mavenizer.analyzer.ClassDependencySet;
-import lu.softec.maven.mavenizer.analyzer.ClassWalkDependencyListener;
-import lu.softec.maven.mavenizer.analyzer.ClassWalkInventoryListener;
+import lu.softec.maven.mavenizer.analyzer.ClassDirectoryWalker;
 import lu.softec.maven.mavenizer.analyzer.ClassWalker;
-import lu.softec.maven.mavenizer.mavenfile.DependencyWalker;
+import lu.softec.maven.mavenizer.analyzer.ClassWalkerExecutionException;
+import lu.softec.maven.mavenizer.analyzer.dependency.ClassDependencyAnalyser;
+import lu.softec.maven.mavenizer.analyzer.dependency.ClassDependencySet;
+import lu.softec.maven.mavenizer.analyzer.mavenasm.ClassWalkDependencyVisitorListener;
+import lu.softec.maven.mavenizer.analyzer.mavenasm.ClassWalkInventoryVisitorListener;
+import lu.softec.maven.mavenizer.analyzer.mavenasm.MavenDependencyWalker;
 import lu.softec.maven.mavenizer.mavenfile.FileMavenInfo;
 import lu.softec.maven.mavenizer.mavenfile.MavenFileFactory;
 import lu.softec.maven.mavenizer.mavenfile.MavenFileSerializer;
@@ -83,9 +85,9 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
     /**
      * Maven dependency walker
      *
-     * @component role="lu.softec.maven.mavenizer.mavenfile.DependencyWalker"
+     * @component role="lu.softec.maven.mavenizer.analyzer.mavenasm.MavenDependencyWalker"
      */
-    private DependencyWalker dependencyWalker;
+    private MavenDependencyWalker dependencyWalker;
 
     /**
      * Default pattern for the JVM provided class
@@ -117,24 +119,35 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
         addJvmProvidedClass(analyser);
         addProvidedClass(analyser);
 
-        ClassWalker libs = getLibsWalker();
-        libs.addLibraryWalkListener(new ClassWalkDependencyListener(analyser, getLog()));
-        libs.scan();
+        try {
+            ClassWalker libs = getLibsWalker();
+            libs.addClassWalkListener(new ClassWalkDependencyVisitorListener(analyser, getLog()));
+            libs.scan();
 
-        if ((getLibsExcludes() != null || getLibsIncludes() != null) &&
-            (getDepsExcludes() != null || getDepsIncludes() != null))
-        {
-            ClassWalker deps = getDepsWalker();
-            deps.addLibraryWalkListener(new ClassWalkInventoryListener(analyser, getLog()));
-            deps.scan();
-        }
+            if ((getLibsExcludes() != null || getLibsIncludes() != null) &&
+                (getDepsExcludes() != null || getDepsIncludes() != null))
+            {
+                ClassWalker deps = getDepsWalker();
+                deps.addClassWalkListener(new ClassWalkInventoryVisitorListener(analyser, getLog()));
+                deps.scan();
+            }
 
-        if (getProject().getDependencies() != null && getProject().getDependencies().size() > 0) {
-            dependencyWalker.setDependencies(getProject().getDependencies());
-            dependencyWalker.setRepository(getLocalRepository());
-            dependencyWalker.setRemoteRepositories(getProject().getRemoteArtifactRepositories());
-            dependencyWalker.addLibraryWalkListener(new ClassWalkInventoryListener(analyser, getLog()));
-            dependencyWalker.scan();
+            if (getProject().getDependencies() != null && getProject().getDependencies().size() > 0) {
+                dependencyWalker.setDependencies(getProject().getDependencies());
+                dependencyWalker.setRepository(getLocalRepository());
+                dependencyWalker.setRemoteRepositories(getProject().getRemoteArtifactRepositories());
+                dependencyWalker.addClassWalkListener(new ClassWalkInventoryVisitorListener(analyser, getLog()));
+                dependencyWalker.scan();
+            }
+        } catch (ClassWalkerExecutionException e) {
+            if (e.getFile() != null) {
+                throw new MojoExecutionException("Analysis failed on file " + e.getFile().getAbsolutePath(), e);
+            } else if (e.getCause() != null) {
+                throw new MojoExecutionException("Analysis failed: " + e.getCause().getMessage(),
+                    e.getCause().getCause());
+            } else {
+                throw new MojoExecutionException("Analysis failed: " + e.getMessage(), e);
+            }
         }
 
         // Write resulting configuration
@@ -242,7 +255,7 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
      */
     public ClassWalker getLibsWalker()
     {
-        ClassWalker walker = new ClassWalker();
+        ClassDirectoryWalker walker = new ClassDirectoryWalker();
         walker.setBaseDir(getBinariesBaseDir());
         walker.addIncludes(getLibsIncludes());
         walker.addExcludes(getLibsExcludes());
@@ -256,7 +269,7 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
      */
     public ClassWalker getDepsWalker()
     {
-        ClassWalker walker = new ClassWalker();
+        ClassDirectoryWalker walker = new ClassDirectoryWalker();
         walker.setBaseDir(getBinariesBaseDir());
         walker.addIncludes(getDepsIncludes());
         walker.addExcludes(getDepsExcludes());

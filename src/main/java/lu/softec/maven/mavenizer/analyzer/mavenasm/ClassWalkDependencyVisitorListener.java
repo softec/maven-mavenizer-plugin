@@ -13,45 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lu.softec.maven.mavenizer.analyzer;
+package lu.softec.maven.mavenizer.analyzer.mavenasm;
 
 import java.io.File;
 
 import org.apache.maven.plugin.logging.Log;
 
+import lu.softec.maven.mavenizer.analyzer.dependency.ClassDependencyAnalyser;
+
 /**
- * Specialized {@link AbstractClassWalkVisitorListener} using a {@link ClassInventoryVisitor} to visit classes and
+ * Specialized {@link AbstractClassWalkVisitorListener} using a {@link ClassDependencyVisitor} to visit classes and
  * logging informational and error messages into a {@link org.apache.maven.plugin.logging.Log}.
  */
-public class ClassWalkInventoryListener extends AbstractClassWalkVisitorListener
+public class ClassWalkDependencyVisitorListener extends AbstractClassWalkVisitorListener
 {
     protected final Log logger;
 
-    public ClassWalkInventoryListener(ClassDependencyAnalyser analyser, Log logger)
+    public ClassWalkDependencyVisitorListener(ClassDependencyAnalyser analyser, Log logger)
     {
-        super(new ClassInventoryVisitor(analyser));
+        super(new ClassDependencyVisitor(analyser));
         this.logger = logger;
     }
 
     public void libraryWalkStarted(File file)
     {
-        logger.info("Listing classes from " + file.getAbsolutePath());
+        logger.info("Analysing dependencies in classes from " + file.getAbsolutePath());
     }
 
     public void libraryWalkFileClosed()
     {
-        logger.info("Found " + getClassCount() + " classes in file " + getCurrentFile().getAbsolutePath());
+        logger.info("Analysed " + getClassCount() + " classes in file " + getCurrentFile().getAbsolutePath());
         super.libraryWalkFileClosed();
     }
 
     public void libraryWalkFinished()
     {
-        logger.info("Listing done.");
-    }
-
-    public void error(File file, Throwable t)
-    {
-        logger.error("Error while reading file " + file.getAbsolutePath(), t);
+        logger.info("Dependency analysis done.");
     }
 
     public void debug(String s)

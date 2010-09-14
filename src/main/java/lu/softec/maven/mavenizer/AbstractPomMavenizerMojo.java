@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.Reader;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -90,6 +92,10 @@ public abstract class AbstractPomMavenizerMojo extends AbstractMavenizerMojo
             throw new MojoExecutionException("Error while parsing mavenizer configuration", e);
         } catch (InvalidMavenCoordinatesException e) {
             throw new MojoExecutionException("Invalid maven coordinates detected in mavenizer configuration", e);
+        } catch (ArtifactNotFoundException e) {
+            throw new MojoExecutionException("Missing artifact detected in mavenizer configuration", e);
+        } catch (ArtifactResolutionException e) {
+            throw new MojoExecutionException("Unresolvable artifact detected in mavenizer configuration", e);
         } finally {
             IOUtil.close(reader);
         }

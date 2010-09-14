@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lu.softec.maven.mavenizer.mavenfile.internal;
+package lu.softec.maven.mavenizer.analyzer.mavenasm;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,19 +28,21 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.model.Dependency;
 
 import lu.softec.maven.mavenizer.analyzer.ClassWalkListener;
-import lu.softec.maven.mavenizer.mavenfile.DependencyWalker;
+import lu.softec.maven.mavenizer.analyzer.ClassWalkerExecutionException;
+import lu.softec.maven.mavenizer.analyzer.ClassWalkerRuntimeException;
 import lu.softec.maven.mavenizer.mavenfile.InvalidMavenCoordinatesException;
 import lu.softec.maven.mavenizer.mavenfile.MavenFile;
 import lu.softec.maven.mavenizer.mavenfile.MavenFileFactory;
 
 /**
- * Default implementation of {@link lu.softec.maven.mavenizer.mavenfile.DependencyWalker} Dependencies are resolved as
- * needed.
+ * Default implementation of {@link MavenDependencyWalker} Dependencies are resolved as needed.
  */
-public class DefaultDependencyWalker implements DependencyWalker
+public class DefaultMavenDependencyWalker implements MavenDependencyWalker
 {
     /**
      * MavenFileFactory used to create MavenFiles to resolve dependencies
@@ -66,6 +68,11 @@ public class DefaultDependencyWalker implements DependencyWalker
      * List of registered {@link ClassWalkListener}
      */
     private List listeners = new ArrayList();
+
+    /**
+     * Debug mode
+     */
+    private boolean debugMode = false;
 
     public List getDependencies()
     {
@@ -97,33 +104,54 @@ public class DefaultDependencyWalker implements DependencyWalker
         this.remoteRepositories = new ArrayList(remoteArtifactRepositories);
     }
 
-    public void addLibraryWalkListener(ClassWalkListener listener)
+    public void addClassWalkListener(ClassWalkListener listener)
     {
         listeners.add(listener);
     }
 
-    public void scan()
+    public void scan() throws ClassWalkerExecutionException
     {
         if (dependencies == null) {
+            fireDebug(".No dependency to process.");
             return;
         }
 
-        int i = 1;
-        for (Iterator it = dependencies.iterator(); it.hasNext(); i++) {
-            Dependency dep = (Dependency) it.next();
+        try {
+            int i = 1;
+            for (Iterator it = dependencies.iterator(); it.hasNext(); i++) {
+                Dependency dep = (Dependency) it.next();
 
-            MavenFile mvnFile;
-            try {
-                mvnFile = mavenFileFactory
-                    .getMavenFile(null, dep.getGroupId(), dep.getArtifactId(), dep.getVersion(), dep.getClassifier(),
-                        null, repository, remoteRepositories);
-            } catch (InvalidMavenCoordinatesException e) {
-                // Should never happen
-                throw new RuntimeException(e);
+                fireDebug(
+                    ".Processing dependency " + dep.getGroupId() + ":" + dep.getArtifactId() + ":" + dep.getVersion() +
+                        ":" + dep.getClassifier());
+                MavenFile mvnFile;
+                try {
+                    mvnFile = mavenFileFactory
+                        .getMavenFile(null, dep.getGroupId(), dep.getArtifactId(), dep.getVersion(),
+                            dep.getClassifier(),
+                            null, repository, remoteRepositories);
+                } catch (InvalidMavenCoordinatesException e) {
+                    // Should never happen
+                    throw new ClassWalkerRuntimeException(e);
+                } catch (ArtifactNotFoundException e) {
+                    throw new ClassWalkerRuntimeException(e);
+                } catch (ArtifactResolutionException e) {
+                    throw new ClassWalkerRuntimeException(e);
+                }
+
+                fireDebug("..Analysing file " + mvnFile.getFile().getAbsolutePath());
+                processJarFile(i * 100 / dependencies.size(), mvnFile.getFile());
+                fireDebug("..File analysed.");
+                fireDebug(".Dependency processed.");
             }
-
-            processJarFile(i * 100 / dependencies.size(), mvnFile.getFile());
+        } catch (ClassWalkerRuntimeException e) {
+            throw new ClassWalkerExecutionException(e.getFile(), e.getCause());
         }
+    }
+
+    public void setDebugMode(boolean debugEnabled)
+    {
+        this.debugMode = debugEnabled;
     }
 
     /**
@@ -153,7 +181,7 @@ public class DefaultDependencyWalker implements DependencyWalker
 
             fireLibraryWalkFileClosed();
         } catch (IOException e) {
-            fireError(file, e);
+            throw new ClassWalkerRuntimeException(file, e);
         } finally {
             if (zip != null) {
                 try {
@@ -164,15 +192,16 @@ public class DefaultDependencyWalker implements DependencyWalker
     }
 
     /**
-     * Fire error events in all registered listener.
+     * Fire debug events in all registered listener.
      *
-     * @param file currently processed file
-     * @param e exception reported
+     * @param message the debug message
      */
-    private void fireError(File file, IOException e)
+    private void fireDebug(String message)
     {
-        for (Iterator it = listeners.iterator(); it.hasNext();) {
-            ((ClassWalkListener) it.next()).error(file, e);
+        if (debugMode && message != null) {
+            for (Iterator it = listeners.iterator(); it.hasNext();) {
+                ((ClassWalkListener) it.next()).debug(message);
+            }
         }
     }
 
