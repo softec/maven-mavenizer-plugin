@@ -2,24 +2,70 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>lu.softec</groupId>
-    <artifactId>softec-java</artifactId>
-    <version>2</version>
-  </parent>
-
   <groupId>lu.softec.maven</groupId>
   <artifactId>maven-mavenizer-plugin</artifactId>
   <version>1.0</version>
   <packaging>maven-plugin</packaging>
 
-  <name>maven-mavenizer-plugin Maven Plugin</name>
+  <name>Mavenizer Maven Plugin</name>
+  <description>Maven Plugin that aim to facilitate integration of non-maven binaries into a maven repository</description>
+  <url>http://mavenizer.softec.lu</url>
+  <inceptionYear>2010</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>SOFTEC sa</name>
+    <url>http://softec.lu/</url>
+  </organization>
+  
+  <developers>
+    <developer>
+      <id>DenisG</id>
+      <name>Denis Gervalle</name>
+      <email>Denis.Gervalle@softec.lu</email>
+      <organization>SOFTEC sa</organization>
+      <organizationUrl>http://softec.lu/</organizationUrl>
+      <roles>
+        <role>CEO</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>OlivierD</id>
+      <name>Olivier Desaive</name>
+      <email>Olivier.Desaive@softec.lu</email>
+      <organization>SOFTEC sa</organization>
+      <organizationUrl>http://softec.lu/</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/softec/maven-mavenizer-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:softec/maven-mavenizer-plugin.git</developerConnection>
+    <url>http://github.com/softec/maven-mavenizer-plugin/</url>
+  </scm>
+
+  <issueManagement>
+    <system>github</system>
+    <url>http://github.com/softec/maven-mavenizer-plugin/issues</url>
+  </issueManagement>
 
   <dependencies>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-      <version>2.0</version>
+      <version>2.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
@@ -51,34 +97,115 @@
       <artifactId>asm-commons</artifactId>
       <version>3.2</version>
     </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
+  <prerequisites>
+    <maven>2.0</maven>
+  </prerequisites>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
   <build>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
         <configuration>
           <source>1.4</source>
           <target>1.4</target>
+          <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
       <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.4.3</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>      
+      <plugin>
         <artifactId>maven-plugin-plugin</artifactId>
+        <version>2.6</version>
         <configuration>
           <goalPrefix>mavenizer</goalPrefix>
           <extractors>
             <extractor>java</extractor>
           </extractors>
         </configuration>
+        <executions>
+          <execution>
+            <id>generated-helpmojo</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
+      <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>2.1.1</version>
+          <configuration>
+              <outputEncoding>${project.build.sourceEncoding}</outputEncoding>
+          </configuration>
+      </plugin>      
     </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.2</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>dependencies</report>
+              <report>license</report>
+              <report>plugins</report>
+              <report>summary</report>
+              <report>project-team</report>
+              <report>scm</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <goalPrefix>mavenizer</goalPrefix>
+        </configuration>
+      </plugin>
+      <plugin>
+         <artifactId>maven-javadoc-plugin</artifactId>
+         <version>2.7</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.2</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <repositories>
+    <repository>
+      <id>central</id>
+      <url>http://repo1.maven.org/maven2/</url>
+      <releases><enabled>true</enabled></releases>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>central</id>
+      <url>http://repo1.maven.org/maven2/</url>
+      <releases><enabled>true</enabled></releases>
+      <snapshots><enabled>false</enabled></snapshots>
+    </pluginRepository>
+  </pluginRepositories>
 
   <distributionManagement>
     <repository>

@@ -42,7 +42,7 @@ import lu.softec.maven.mavenizer.mavenfile.MavenFileSerializer;
 /**
  * Analyse dependencies between binaries of the project.
  *
- * @goal analyse
+ * @goal analyze
  * @phase generate-resources
  */
 public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
@@ -108,9 +108,14 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
      */
     public void execute() throws MojoExecutionException, MojoFailureException
     {
+        if (!isBuilt(getMavenizerConfigFile())) {
+            getLog().info("Mavenizer configuration should be provided locally, skipping analysis.");
+            return;
+        }
+
         // Check for changes and skip execution when uneeded
         if (getLatestFileModification(getBinariesBaseDir()) < getMavenizerConfigFile().lastModified()) {
-            getLog().info("No changes in binaries detected, skipping dependency analysis.");
+            getLog().info("Binaries are not newer, skipping dependency analysis.");
             return;
         }
 
@@ -184,12 +189,17 @@ public class DependencyAnalyserMojo extends AbstractArchiveMavenizerMojo
             throw new MojoExecutionException("Error while dumping the mavenizer configuration", e);
         }
 
-        // Reports unresolved classes
-        getLog().info("Unresolved classes:");
-        for (Iterator it = analyser.getUnresolvedDependencies().iterator(); it.hasNext();) {
-            ClassDependencySet.Pair pair = (ClassDependencySet.Pair) it.next();
-            getLog().info(
-                pair.getFromName().replace('/', '.') + " (referenced by " + pair.getToName().replace('/', '.') + ")");
+        if (analyser.getUnresolvedDependencies().size() > 0) {
+            // Reports unresolved classes
+            getLog().info("Unresolved classes:");
+            for (Iterator it = analyser.getUnresolvedDependencies().iterator(); it.hasNext();) {
+                ClassDependencySet.Pair pair = (ClassDependencySet.Pair) it.next();
+                getLog().info(
+                    pair.getFromName().replace('/', '.') + " (referenced by " + pair.getToName().replace('/', '.') +
+                        ")");
+            }
+        } else {
+            getLog().info("All dependencies as been properly resolved.");
         }
     }
 

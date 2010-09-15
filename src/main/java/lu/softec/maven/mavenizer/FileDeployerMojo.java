@@ -36,7 +36,7 @@ import lu.softec.maven.mavenizer.mavenfile.MavenFile;
 import lu.softec.maven.mavenizer.mavenfile.MavenFileSet;
 
 /**
- * Generate POM files based on the dependency analysis
+ * Deploy the binaries of the project with their generated POM to a remote repository
  *
  * @goal filedeploy
  * @phase deploy

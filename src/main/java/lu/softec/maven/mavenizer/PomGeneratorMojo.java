@@ -33,7 +33,7 @@ import lu.softec.maven.mavenizer.mavenfile.MavenFileSerializer;
 import lu.softec.maven.mavenizer.mavenfile.MavenFileSet;
 
 /**
- * Generate POM files based on the dependency analysis
+ * Create POM files based on the dependency analysis
  *
  * @goal mavenize
  * @phase prepare-package
@@ -59,13 +59,16 @@ public class PomGeneratorMojo extends AbstractPomMavenizerMojo
      */
     public void execute() throws MojoExecutionException, MojoFailureException
     {
+        if (!isBuilt(getPomBaseDir())) {
+            getLog().info("POM files should be provided locally, skipping POM creation.");
+            return;
+        }
+
         MavenFileSet mavenLibs = getMavenizerConfig();
 
-        if (getPomBaseDir().mkdirs()
-            || getEarliestFileModification(getPomBaseDir()) < getMavenizerConfigFile().lastModified())
-        {
-
-            getLog().info("Generating POM files in " + getPomBaseDir().getAbsolutePath());
+        if (getEarliestFileModification(getPomBaseDir()) < getMavenizerConfigFile().lastModified()) {
+            getPomBaseDir().mkdirs();
+            getLog().info("Creating POM files in " + getPomBaseDir().getAbsolutePath());
 
             Iterator it = mavenLibs.iterator();
             while (it.hasNext()) {
@@ -78,7 +81,7 @@ public class PomGeneratorMojo extends AbstractPomMavenizerMojo
             }
         } else {
             getLog().info(
-                "No changes in mavenizer configuration detected since last pom generation, skipping pom generation.");
+                "Mavenizer configuration is not newer, skipping POM creation.");
         }
     }
 

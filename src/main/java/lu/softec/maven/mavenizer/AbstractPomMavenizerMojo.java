@@ -41,7 +41,8 @@ import lu.softec.maven.mavenizer.mavenfile.MavenFileSet;
 public abstract class AbstractPomMavenizerMojo extends AbstractMavenizerMojo
 {
     /**
-     * Base directory where the POM of the project to be mavenized are stored.
+     * Base directory where the POM of the project to be mavenized are stored. If this directory is not located in the
+     * project build directory, the pom file should be provided locally.
      *
      * @parameter expression="${project.build.directory}/pom"
      * @required

@@ -31,7 +31,7 @@
             lu.softec.maven:maven-mavenizer-plugin:download
           </generate-sources>
           <generate-resources>
-            lu.softec.maven:maven-mavenizer-plugin:analyse
+            lu.softec.maven:maven-mavenizer-plugin:analyze
           </generate-resources>
           <prepare-package>
             lu.softec.maven:maven-mavenizer-plugin:mavenize

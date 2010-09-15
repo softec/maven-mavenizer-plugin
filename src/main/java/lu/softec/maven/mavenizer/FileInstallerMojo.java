@@ -30,7 +30,7 @@ import lu.softec.maven.mavenizer.mavenfile.MavenFile;
 import lu.softec.maven.mavenizer.mavenfile.MavenFileSet;
 
 /**
- * Generate POM files based on the dependency analysis
+ * Install the binaries of the project with their generated POM to a local repository
  *
  * @goal fileinstall
  * @phase install

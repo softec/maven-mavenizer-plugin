@@ -57,64 +57,92 @@ public class RemoteArchiveExtractorMojo extends AbstractArchiveMavenizerMojo
         // Retrieve archive if URL is provided and remote file is newer than local one
 
         if (getURLLastModificationDate() > getArchiveFile().lastModified()) {
-            getLog().info(
-                "Retrieving project archive from " + getArchiveURL().toString() + " to " +
-                    getArchiveFile().getAbsolutePath());
+            if (!isBuilt(getArchiveFile()) || !isBuilt(getBinariesBaseDir())) {
+                if (!isBuilt(getBinariesBaseDir())) {
+                    getLog()
+                        .warn(
+                            "Newer archive file has not been downloaded because binaries are not stored in the build directory and should therefore be updated manually.");
+                } else {
+                    getLog()
+                        .warn(
+                            "Newer archive file has not been downloaded because it is not stored in the build directory and should therefore be updated manually.");
+                }
+            } else {
+                getLog().info(
+                    "Retrieving project archive from " + getArchiveURL().toString() + " to " +
+                        getArchiveFile().getAbsolutePath());
 
-            try {
-                FileUtils.copyURLToFile(getArchiveURL(), getArchiveFile());
-            } catch (IOException e) {
-                throw new MojoExecutionException(
-                    "Unable to retrieve the project archive from " + getArchiveURL().toString() + " to " +
-                        getArchiveFile().getAbsolutePath(), e);
+                try {
+                    FileUtils.copyURLToFile(getArchiveURL(), getArchiveFile());
+                } catch (IOException e) {
+                    throw new MojoExecutionException(
+                        "Unable to retrieve the project archive from " + getArchiveURL().toString() + " to " +
+                            getArchiveFile().getAbsolutePath(), e);
+                }
+
+                forceDeleteTargetDirectory(getBinariesBaseDir());
             }
-
-            deleteDirectory(getBinariesBaseDir());
         } else {
-            if (getArchiveURL() != null) {
-                getLog().info("No changes in remote file detected, skipping archive download.");
+            if (getArchiveURL() != null && isBuilt(getArchiveFile()) && isBuilt(getBinariesBaseDir())) {
+                getLog().info("Remote file is not newer, skipping archive download.");
+            } else {
+                if (isBuilt(getBinariesBaseDir())) {
+                    getLog().info("Archive should be provided locally, skipping download.");
+                } else {
+                    getLog().info("Binaries should be provided locally, skipping download.");
+                }
             }
         }
 
         // Extract archive file if archive is newer than extracted data
 
-        if (getBinariesBaseDir().mkdirs() ||
-            getArchiveFile().lastModified() > getBinariesBaseDir().lastModified())
-        {
-            try {
-                UnArchiver unarchiver = archiveManager.getUnArchiver(getArchiveFile());
-                unarchiver.setSourceFile(getArchiveFile());
-                unarchiver.setDestDirectory(getBinariesBaseDir());
+        if (getArchiveFile().lastModified() > getBinariesBaseDir().lastModified()) {
+            if (!isBuilt(getBinariesBaseDir())) {
+                getLog()
+                    .warn(
+                        "Newer archive file has not been extracted because the binary base directory it is not stored in the build directory");
+            } else {
+                getBinariesBaseDir().mkdirs();
+                try {
+                    UnArchiver unarchiver = archiveManager.getUnArchiver(getArchiveFile());
+                    unarchiver.setSourceFile(getArchiveFile());
+                    unarchiver.setDestDirectory(getBinariesBaseDir());
 
-                // Extract libraries
-                FileSelector selector = getLibsSelector();
-                if (selector != null) {
-                    unarchiver.setFileSelectors(new FileSelector[]{selector});
-                    getLog().info("Expanding libraries from project archive " + getArchiveFile().getAbsolutePath());
-                } else {
-                    getLog().info("Expanding all files from project archive " + getArchiveFile().getAbsolutePath());
-                }
-                unarchiver.extract();
-
-                // If libraries has been selectively extracted and other dependencies are selected, extract them
-                if (selector != null) {
-                    selector = getDepsSelector();
+                    // Extract libraries
+                    FileSelector selector = getLibsSelector();
                     if (selector != null) {
                         unarchiver.setFileSelectors(new FileSelector[]{selector});
-                        getLog()
-                            .info("Expanding dependencies from project archive " + getArchiveFile().getAbsolutePath());
-                        unarchiver.extract();
+                        getLog().info("Expanding libraries from project archive " + getArchiveFile().getAbsolutePath());
+                    } else {
+                        getLog().info("Expanding all files from project archive " + getArchiveFile().getAbsolutePath());
                     }
+                    unarchiver.extract();
+
+                    // If libraries has been selectively extracted and other dependencies are selected, extract them
+                    if (selector != null) {
+                        selector = getDepsSelector();
+                        if (selector != null) {
+                            unarchiver.setFileSelectors(new FileSelector[]{selector});
+                            getLog()
+                                .info("Expanding dependencies from project archive " +
+                                    getArchiveFile().getAbsolutePath());
+                            unarchiver.extract();
+                        }
+                    }
+                } catch (NoSuchArchiverException e) {
+                    forceDeleteTargetDirectory(getBinariesBaseDir());
+                    throw new MojoExecutionException("No unarchiver is available to handle the retrieved archive", e);
+                } catch (ArchiverException e) {
+                    forceDeleteTargetDirectory(getBinariesBaseDir());
+                    throw new MojoExecutionException("Unable to expand the retrieved archive", e);
                 }
-            } catch (NoSuchArchiverException e) {
-                deleteDirectory(getBinariesBaseDir());
-                throw new MojoExecutionException("No unarchiver is available to handle the retrieved archive", e);
-            } catch (ArchiverException e) {
-                deleteDirectory(getBinariesBaseDir());
-                throw new MojoExecutionException("Unable to expand the retrieved archive", e);
             }
         } else {
-            getLog().info("Archive file seems unchanged, skipping archive expansion.");
+            if (isBuilt(getBinariesBaseDir())) {
+                getLog().info("Archive file is not newer, skipping archive expansion.");
+            } else {
+                getLog().info("Binaries should be provided locally, skipping archive extraction.");
+            }
         }
     }
 
@@ -182,23 +210,6 @@ public class RemoteArchiveExtractorMojo extends AbstractArchiveMavenizerMojo
         fs.setExcludes(excludes);
         fs.setUseDefaultExcludes(true);
         return fs;
-    }
-
-    /**
-     * Internal helper function to recursively delete a directory without throwing an error. If an error occurs, it is
-     * simply logged as a warning and processing is continued.
-     *
-     * @param file the directory to delete
-     */
-    private void deleteDirectory(File file)
-    {
-        if (file != null && file.exists()) {
-            try {
-                FileUtils.deleteDirectory(file);
-            } catch (IOException e) {
-                getLog().warn("Unable to cleanup binary base directory " + file.getAbsolutePath(), e);
-            }
-        }
     }
 
     /**
