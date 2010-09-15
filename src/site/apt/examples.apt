@@ -1,0 +1,56 @@
+ The Mavenizer Plugin aims to facilitate the deployment of non-maven binaries
+ into a maven repository while keeping the whole benefits of Maven dependency
+ management. Below are some examples of its usage for common non-maven projects.
+
+Google GData API for Java
+
+ The following POM file could be used to deploy the gdata API from google into
+ your maven repository. You just have to adjust the version of the project to
+ match the one of the google API.
+
++--------------------------------------------------------------------------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.google.gdata</groupId>
+  <artifactId>gdata-java</artifactId>
+  <version>1.41.5</version>
+  <packaging>mavenize</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.collections</groupId>
+      <artifactId>google-collections</artifactId>
+      <version>1.0-rc1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>lu.softec.maven</groupId>
+        <artifactId>maven-mavenizer-plugin</artifactId>
+        <version>1.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <archiveURL>http://gdata-java-client.googlecode.com/files/gdata.java-${project.version}.zip</archiveURL>
+          <libsIncludes>
+            <libsInclude>gdata/java/lib/**/*.jar</libsInclude>
+          </libsIncludes>
+          <artifacts>
+            <artifact>
+              <groupId>${project.groupId}</groupId>
+              <version>${project.version}</version>
+            </artifact>
+          </artifacts>
+          <repositoryId>softec-thirdparty</repositoryId>
+          <repositoryUrl>http://nexus.softec.lu:8081/content/repositories/thirdparty</repositoryUrl>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
++--------------------------------------------------------------------------------------------------------------------+

@@ -1,0 +1,117 @@
+  The Mavenizer Plugin aims to facilitate the deployment of non-maven binaries
+  into a maven repository while keeping the whole benefits of Maven dependency
+  management.
+
+  It provides a special maven livecycle and some specific goals that helps
+  analysing, installing and deploying JAR files into a Maven repository associated
+  with the appropriate POM definitions. The analysis of the dependencies directly
+  from the binaries helps in creating useful POM definition containing a correct list
+  of dependencies required by these non-maven libraries without requiring access to
+  their sources, and very quickly compared to a complete conversion of the underlying
+  project to Maven.
+
+Goals Overview
+
+  This plugin has 6 goals:
+
+  * {{{./download-mojo.html}mavenizer:download}} download and extract the binaries of the project
+
+  * {{{./analyze-mojo.html}mavenizer:analyze}} analyse dependencies between binaries of the project.
+
+  * {{{./clean-analyze-mojo.html}mavenizer:clean-analyze}} delete analysis results (xml and pom).
+
+  * {{{./mavenize-mojo.html}mavenizer:mavenize}} create POM files based on the dependency analysis
+
+  * {{{./fileinstall-mojo.html}mavenizer:fileinstall}} install the binaries of the project with their generated POM to a local repository
+
+  * {{{./filedeploy-mojo.html}mavenizer:filedeploy}} deploy the binaries of the project with their generated POM to a remote repository
+
+[]
+
+Mavenize Lifecycle
+
+  The Mavenizer plugin introduce a special lifecyle that could be triggered using a <<<mavenize>>> packaging.
+  The <<<mavenize>>> lifecycle define the following phases:
+
+  * <<<generate-sources>>> phase execute the {{{./download-mojo.html}mavenizer:download}} goal which download and extract the binaries of the project
+
+  * <<<generate-resources>>> phase execute the {{{./analyze-mojo.html}mavenizer:analyze}} goal which analyze dependencies between binaries of the project
+
+  * <<<prepare-package>>> phase execute the {{{./mavenize-mojo.html}mavenizer:mavenize}} goal which create POM files based on the dependency analysis
+
+  * <<<install>>> phase execute the {{{./fileinstall-mojo.html}mavenizer:fileinstall}} goal which install the binaries of the project with their generated POM to a local repository
+
+  * <<<deploy>>> phase execute the {{{./filedeploy-mojo.html}mavenizer:filedeploy}} goal which deploy the binaries of the project with their generated POM to a remote repository
+
+[]
+
+Usage
+
+  For a really quick overview, here is the most common usage and a typical pom.xml file to use the full
+  feature of this plugin:
+
++----------------------------------------------------------------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>project.group.id</groupId>
+  <artifactId>project</artifactId>
+  <version>1.0</version>
+  <packaging>mavenize</packaging>
+
+  <dependencies>
+... some maven dependencies for the binaries
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>lu.softec.maven</groupId>
+        <artifactId>maven-mavenizer-plugin</artifactId>
+        <version>1.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <archiveURL>http://hosting.web.st/project/archive.zip</archiveURL>
+          <libsIncludes>
+            <libsInclude>lib/**/*.jar</libsInclude>
+          </libsIncludes>
+          <artifacts>
+            <artifact>
+              <groupId>${project.groupId}</groupId>
+              <version>${project.version}</version>
+            </artifact>
+          </artifacts>
+          <repositoryId>remote-repository-id</repositoryId>
+          <repositoryUrl>http://remote.repository.com/content/repositories/myrepos<repositoryUrl>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
++----------------------------------------------------------------------------------------------------------+
+
+  To deploy, just use:
+
++--------+
+mvn deploy
++--------+
+
+  This will download the binary archive of the project and extract, analyse and deploy
+  its libraries to a remote maven repository with appropriate POM file that assure
+  correct dependency management. However, writing such POM is not always
+  a straight forward process, until you have a very good knowledge of the binaries
+  you want to deploy.
+
+  The complete procedure to write a correct POM is describe on the {{{./usage.html}Usage}} page.
+  It will teach you all the details about the usage of this plugin allowing you to
+  deploy almost any set of JARs into a maven properly. If you need more in-depth coverage
+  of the configuration options, you may also read the {{{./plugin-info.html}goals documentation}}.
+
+Examples
+
+  For those who learn by example, we ready-made POM file for common non-maven projects:
+
+  * {{{./gdata-java.html}Google GData API for Java}}

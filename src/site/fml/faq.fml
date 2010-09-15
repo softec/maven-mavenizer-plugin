@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faqs title="Frequently Asked Questions">
+  <part id="General">
+    <faq id="what-it-does">
+      <question>What does the Mavenizer plugin ?</question>
+      <answer>
+        <p>
+          It provides a special maven livecycle and some specific goals that helps
+          analysing, installing and deploying JAR files into a Maven repository associated
+          with the appropriate POM definitions. The analysis of the dependencies directly
+          from the binaries helps in creating useful POM definition containing a correct list
+          of dependencies required by these non-maven libraries without requiring access to
+          their sources, and very quickly compared to a complete conversion of the underlying
+          project to Maven.
+        </p>
+      </answer>
+    </faq>
+  </part>
+</faqs>

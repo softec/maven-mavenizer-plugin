@@ -1,0 +1,574 @@
+  The Mavenizer Plugin aims to facilitate the deployment of non-maven binaries
+  into a maven repository while keeping the whole benefits of Maven dependency
+  management. Below are the different goals and configurations for the plugin.
+
+Use the Mavenizer plugin lifecycle
+
+  The easiest way to use this plug in is to use it with its own special lifecycle.
+  To ensure that you will be using the mavenizer lifecyle, there is two steps:
+
+  * Define the plugin as an extension to expose the special lifecycle to maven
+
+  * Use the <<<mavenize>>> packaging to select the correct lifecycle
+
+[]
+
+  Here is the minimal settings for completing these to requirement in your POM :
+
++-------------------------------------------------------+
+<project ...>
+  ...
+  <packaging>mavenize</packaging>
+  ...
+  <build>
+    ...
+    <plugins>
+      ...
+      <plugin>
+        <groupId>lu.softec.maven</groupId>
+        <artifactId>maven-mavenizer-plugin</artifactId>
+        <version>1.0</version>
+        <extensions>true</extensions>
+        <configuration>
+        ...
+        </configuration>
+      </plugin>
+      ...
+    </plugins>
+    ...
+  </build>
+</project>
++-------------------------------------------------------+
+
+Obtains the JAR files you want to deploy
+
+  To obtains the binaries that will be deployed, you have several options:
+
+  * You have these binaries locally in uncompressed form
+
+  * You have an local archive of these binaries
+
+  * You can freely download the archive from a simple URL
+
+* Uncompressed binaries available locally
+
+  If you have your binaries in uncompressed form locally, you just have to define the folder where these binaries are
+  located. The binaries does not need to be isolated and a selection may be applied latter, see below.
+  This folder should not be located in the project build directory (target by default), or these
+  may be deleted by the plugin in certain circonstances. You may also document the origin of these binaries
+  using the ArchiveURL. This URL may be checked for updates but will never be downloaded.
+
+  Here is how to configure this:
+
++------------------------------------------------------------------------------------------------+
+        ...
+        <configuration>
+          ...
+          <binariesBaseDir>/path/to/the/root/directory/containing/your/binaries</binariesBaseDir>
+          ...
+          <!-- Optional, only check, never download -->
+          <archiveURL>http://your.server.com/path/to/the/archive.zip</archiveURL>
+          ...
+        </configuration>
+        ...
++------------------------------------------------------------------------------------------------+
+
+* Local archive containing your binaries
+
+  If you have a local archive containing your binaries, you just have to define where this archive is
+  located. The archive does not need to contains only the binaries and a selection may be applied latter, see below.
+  The archive file should not be located in the project build directory (target by default), or it
+  may be deleted by the plugin in certain circonstances. You may also document the origin of the archive
+  using the ArchiveURL. This URL may be checked for updates but will never be downloaded.
+  You may also define where the archive will be extracted, but this should be
+  inside the project build directory (target by default). By default, the archive will be extracted
+  in <<<${project.build.directory}/bin>>>.
+
+  Here is how to configure this:
+
++------------------------------------------------------------------------------------------------+
+        ...
+        <configuration>
+          ...
+          <archiveFile>/path/to/the/archive.zip</archiveFile>
+          ...
+          <!-- Optional, only check, never download -->
+          <archiveURL>http://your.server.com/path/to/the/archive.zip</archiveURL>
+          <!-- Optional-->
+          <binariesBaseDir>${project.build.directory}/local/path/to/the/binaries</binariesBaseDir>
+          ...
+        </configuration>
+        ...
++------------------------------------------------------------------------------------------------+
+
+* Remote archive containing your binaries
+
+  If you have access to a remote archive containing your binaries, you just have to define the
+  URL of the archive. The archive does not need to contains only the binaries and a selection may
+  be applied latter, see below.
+
+  You may also define the location where the archive will be downloaded, but this should be
+  inside the project build directory (target by default). By default, the archive will be downloaded
+  in <<<${project.build.directory}/archive>>>. You may also define where the archive will be extracted,
+  but this should be inside the project build directory (target by default). By default, the archive
+  will be extracted in <<<${project.build.directory}/bin>>>.
+
+  Here is how to configure this:
+
++------------------------------------------------------------------------------------------------+
+        ...
+        <configuration>
+          ...
+          <archiveURL>http://your.server.com/path/to/the/archive.zip</archiveFile>
+          ...
+          <!-- Optional -->
+          <archiveBaseDir>${project.build.directory}/any/path</archiveBaseDir>
+          <!-- OR -->
+          <archiveFile>${project.build.directory}/local/path/to/the/archive.zip</archiveBaseDir>
+          <!-- Optional-->
+          <binariesBaseDir>${project.build.directory}/local/path/to/the/binaries</binariesBaseDir>
+          ...
+        </configuration>
+        ...
++------------------------------------------------------------------------------------------------+
+
+Select binaries to analyze and deploy
+
+  The binaries directory, or the archive containing the binaries may contains 3 kind of files:
+
+  * the binaries to deploy in the form of one or more JAR file
+
+  * some dependencies that will be used for dependency resolution and are expected to exists already
+    in maven somewhere, but you do not bother to define in your project dependencies and you
+    expect maven will magically discover. (currently this does not really happen but this
+    is not related to this plug in)
+
+  * any other file that are unneeded for the purpose of this build
+
+[]
+
+  To define to which categories each file available is related, you may use the following selectors
+
+  * <<<libsInclude>>> include some file in the list of binaries to deploy
+
+  * <<<libsExclude>>> exclude some file from the list of included binaries to deploy
+
+  * <<<depsInclude>>> include some file in the list of file used to resolve dependencies
+
+  * <<<depsExclude>>> exclude some file form the list of file used to resolve dependencies
+
+[]
+
+  These selectors support the <</**/>> wildcard to designate any subtree, as well as the usual <<<*>>> and <<<?>>>
+  wildcards. These are selector inside the binaries base directory and are obviously relative path selections.
+  The default is to have no dependencies, and to use all JAR file provided.
+
+  Here is a sample of selection you may do:
+
++------------------------------------------------------------+
+        ...
+        <configuration>
+          ...
+          <!-- Sample -->
+          <libsIncludes>
+            <libsInclude>lib/**/*.jar</libsInclude>
+          </libsIncludes>
+          <!-- and more -->
+          <libsExcludes>
+            <libsExclude>lib/**/*-meta.jar</libsExclude>
+          </libsExcludes>
+
+          <!-- Sample -->
+          <depsIncludes>
+            <depsInclude>deps/**/*.jar</depsInclude>
+          </depsIncludes>
+          <!-- and more -->
+          <depsExcludes>
+            <depsExclude>deps/**/*-meta.jar</depsExclude>
+          </depsExcludes>
+          ...
+        </configuration>
+        ...
++------------------------------------------------------------+
+
+Define the mavenizer configuration file
+
+  Once you have defined your binaries location, you may launch an analysis without defining any
+  further configuration. The analyzer will create the mavenizer configuration file for you.
+  By default this file will be located in <<<${project.build.directory}/mavenizer.xml>>>.
+  You may overide this location, but if the location is not inside the project build directory
+  no more analysis will be possible, and you will have to provide the configuration file
+  manually.
+
+  To overide the location of the mavenizer configuration file, use:
+
++------------------------------------------------------------------------------------------------+
+        ...
+        <configuration>
+          ...
+          <!-- Optional -->
+          <mavenizerConfigFile>${project.build.directory}/config.xml</mavenizerConfigFile>
+          <!-- OR -->
+          <mavenizerConfigFile>/path/to/a/manually/written/mavenizer.xml</mavenizerConfigFile>
+          ...
+        </configuration>
+        ...
++------------------------------------------------------------------------------------------------+
+
+First analysis
+
+  Once you have defined the location of your binaries, you may launch a first analysis to discover possibly
+  missing dependencies or wrongly identified artifacts. To launch this analysis using the <<<mavenize>>>
+  lifecycle, just do:
+
++---------+
+mvn compile
++---------+
+
+  The results of your analysis will be presented both in the log of your build and in the
+  mavenizer configuration file (<<<${project.build.directory}/mavenizer.xml>>> by default):
+
+  * In the log of your build, you will have a list of unresolved dependencies.
+
++------------------------------------------------------------------------------+
+...
+[INFO] Unresolved classes:
+[INFO] com.google.common.collect.MapMaker (referenced by com.google.gdata.model.AttributeMetadataRegistry)
+[INFO] com.google.common.collect.MapMaker (referenced by com.google.gdata.model.ElementMetadataRegistry)
+[INFO] com.google.common.collect.MapMaker (referenced by com.google.gdata.wireformats.ObjectConverter)
+[INFO] com.google.common.collect.Maps (referenced by com.google.gdata.model.AdaptationRegistryFactory)
+[INFO] com.google.common.collect.Maps (referenced by com.google.gdata.model.AttributeMetadataRegistryBuilder)
+[INFO] com.google.common.collect.Maps (referenced by com.google.gdata.model.ElementCreatorImpl)
+...
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESSFUL
+[INFO] ------------------------------------------------------------------------
+...
++------------------------------------------------------------------------------+
+
+  * In the configuration file, you will have the result of the jar and dependencies analysis.
+
++-------------------------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+  <artifact name="gdata/java/lib/gdata-analytics-2.1.jar">
+    <groupid>com.google.gdata</groupid>
+    <artifactid>gdata-analytics</artifactid>
+    <version>2.1</version>
+    <dependencies>
+      <dependency name="gdata/java/lib/gdata-core-1.0.jar">
+        <groupid>com.google.gdata</groupid>
+        <artifactid>gdata-core</artifactid>
+        <version>1.0</version>
+      </dependency>
+    </dependencies>
+  </artifact>
+  ...
+  <artifact name="gdata/java/lib/gdata-base-1.0.jar">
+    <groupid>com.google.api.gbase.client</groupid>
+    <artifactid>gdata-base</artifactid>
+    <version>1.0</version>
+    <dependencies>
+      <dependency name="gdata/java/lib/gdata-client-1.0.jar">
+        <groupid>com.google.gdata.data.extensions</groupid>
+        <artifactid>gdata-client</artifactid>
+        <version>1.0</version>
+      </dependency>
+      <dependency name="gdata/java/lib/gdata-core-1.0.jar">
+        <groupid>com.google.gdata</groupid>
+        <artifactid>gdata-core</artifactid>
+        <version>1.0</version>
+      </dependency>
+      <dependency name="gdata/java/lib/gdata-media-1.0.jar">
+        <groupid>com.google.gdata</groupid>
+        <artifactid>gdata-media</artifactid>
+        <version>1.0</version>
+      </dependency>
+    </dependencies>
+  </artifact>
+  ...
+</artifacts>
++-------------------------------------------------------------------+
+
+[]
+
+  For each files analyzed, the analyzer will have determined the groupId, artifactId and version
+  using native Maven Jar identification mechanism. Examining the byte code, it will have also
+  established the cross-dependencies between analyzed files.
+
+  Currently, there is no way to refine the dependency analysis else than using a fixed configuration.
+  But you may easily improve the identifiaction of you file using artifact hints, see below.
+
+Fixing missing dependencies
+
+  For fixing the list of unresolved dependencies, you have 2 options:
+
+  * you may provide additional dependencies
+
+  * if you know the dependency will be available at runtime and is useless at compile time, you
+    may simply decide to hide the unresolved report, to have a clean build.
+
+[]
+
+* Defining additional dependencies
+
+  If the missing dependencies are available in maven, you may simply define them as dependencies
+  of your current <<<mavenize>>> project. All dependencies defined in the POM will be downloaded
+  and used during dependency resolution.
+
+  To solve the sample above regarding the missing google-collect dependencies, we may add the
+  following to our <<<mavenize>>> project POM:
+
++-------------------------------------------------+
+<dependencies>
+  <dependency>
+    <groupId>com.google.collections</groupId>
+    <artifactId>google-collections</artifactId>
+    <version>1.0-rc1</version>
+  </dependency>
+</dependencies>
++-------------------------------------------------+
+
+* Defining addition binaries for dependency resolution
+
+  You may also provide additional binaries to deploy, or additional binaries as dependencies to
+  be magically found (see above). (currently the magic does not really happen but this is not
+  related to this plug in)
+
+  To solve the sample above regarding the missing google-collect dependencies, we may add the
+  following to our plugin configuration:
+
++------------------------------------------------------------------------+
+      ...
+      <configuration>
+        ...
+        <libsIncludes>
+          <libsInclude>gdata/java/lib/**/*.jar</libsInclude>
+        </libsIncludes>
+        ...
+        <!-- Since magic does not work, we also need that (see below) -->
+        <artifacts>
+          <artifact>
+            <name>google-collect</name>
+            <groupId>com.google.collections</groupId>
+            <artifactId>google-collections</artifactId>
+          </artifact>
+        </artifacts>
+        ...
+      </configuration>
+      ...
++------------------------------------------------------------------------+
+
+* Ignoring dependencies that you know will have no impact
+
+  To signal the classes that should be considered as provided at runtime and ignore
+  them during dependency analysis, you have two configuration options where you
+  may define selector patterns of classes to ignore:
+
+  * <<<jvmProvidedClasses>>> define classes provided by the JVM runtime
+    environment. It has an appropriate defaut value and should normally
+    not be defined in your POM. The default value is:
+
++------------------------------------------------------------------------+
+      ...
+      <configuration>
+        ...
+        <jvmProvidedClasses>
+          <jvmProvidedClass>java.**.*</jvmProvidedClass>
+          <jvmProvidedClass>javax.**.*</jvmProvidedClass>
+          <jvmProvidedClass>com.sun.**.*</jvmProvidedClass>
+          <jvmProvidedClass>org.xml.sax.**.*</jvmProvidedClass>
+          <jvmProvidedClass>org.w3c.dom.**.*</jvmProvidedClass>
+          <jvmProvidedClass>org.ietf.jgss.*</jvmProvidedClass>
+          <jvmProvidedClass>sunw.io.*</jvmProvidedClass>
+          <jvmProvidedClass>sunw.util.*</jvmProvidedClass>
+        </jvmProvidedClasses>
+        ...
+      </configuration>
+      ...
++------------------------------------------------------------------------+
+
+  * <<<providedClasses>>> define other classes that should be ignored. Having this one
+    separated is helpful for keeping the default value of the previous parameter
+    and adding some more patterns for project specific classes to ignore.
+
+[]
+
+  All classes name that will match the above patterns will be ignored when
+  another has them for dependencies.
+
+Fixing bad or inappropriate JAR identification
+
+  If the analyzer as used wrong Maven coordinates to identify analyzed files, you may help
+  the identification engine by providing some hints:
+
+  * You may provide a global hint, that will override completely the identification of
+    all artifacts. (Defining the artifactId for such hints will produce really useless results)
+
+  * You may provide hint for an identified artifactId, and override any version of it
+
+  * You may provide hint for a given filename (without extension)
+
+[]
+
+  More precise definition is always use in priority to less precise one. So the global hint
+  is a last resort, and will be overidden by an artifacts or file hint.
+
+  Here is some examples:
+
++------------------------------------------------------------------------------------------------+
+        ...
+        <configuration>
+          ...
+          <artifacts>
+          ...
+          <!-- Define groupId and version of all identified artifacts not hinted anywhere else
+               using the current project groupId and version. Perfect for most projects, and
+               for our sample of Google GData API -->
+            <artifact>
+              <groupId>${project.groupId}</groupId>
+              <version>${project.version}</version>
+            </artifact>
+
+          <!-- Define a partial overide of a given artifact not hinted as a file elsewhere,
+               using the detected version -->
+            <artifact>
+              <name>artifact-id-identified-by-the-basic-analysis</name>
+              <groupId>new.group.id</groupId>
+              <artifactId>new-artifact-id</artifactId>
+            </artifact>
+
+          <!-- Define a complete overide of a given file -->
+            <artifact>
+              <name>name-of-file-without-extension</name>
+              <groupId>group.id.for.this.file</groupId>
+              <artifactId>artifact-id-for-this-file</artifactId>
+              <version>version-for-this-file</version>
+            </artifact>
+          ...
+          </artifacts>
+          ...
+        </configuration>
+        ...
++------------------------------------------------------------------------------------------------+
+
+Subsequent analysis
+
+  After providing additional dependencies or hints, you may lauch a new analysis by running the
+  following command:
+
++---------------------------------+
+mvn mavenizer:clean-analyze compile
++---------------------------------+
+
+  This will update the analysis results, so you can iterate until the results is precisely what
+  you expect. With the above samples, after adding required dependency and hints, you have no
+  more unresolved dependencies, and you get:
+
++-------------------------------------------------------------------+
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+  <artifact name="gdata/java/lib/gdata-analytics-2.1.jar">
+    <groupid>com.google.gdata</groupid>
+    <artifactid>gdata-analytics</artifactid>
+    <version>1.41.5</version>
+    <dependencies>
+      <dependency name="gdata/java/lib/gdata-core-1.0.jar">
+        <groupid>com.google.gdata</groupid>
+        <artifactid>gdata-core</artifactid>
+        <version>1.41.5</version>
+      </dependency>
+    </dependencies>
+  </artifact>
+  ...
+  <artifact name="gdata/java/lib/gdata-base-1.0.jar">
+    <groupid>com.google.gdata</groupid>
+    <artifactid>gdata-base</artifactid>
+    <version>1.41.5</version>
+    <dependencies>
+      <dependency>
+        <groupid>com.google.collections</groupid>
+        <artifactid>google-collections</artifactid>
+        <version>1.0-rc1</version>
+      </dependency>
+      <dependency name="gdata/java/lib/gdata-client-1.0.jar">
+        <groupid>com.google.gdata</groupid>
+        <artifactid>gdata-client</artifactid>
+        <version>1.41.5</version>
+      </dependency>
+      <dependency name="gdata/java/lib/gdata-core-1.0.jar">
+        <groupid>com.google.gdata</groupid>
+        <artifactid>gdata-core</artifactid>
+        <version>1.41.5</version>
+      </dependency>
+      <dependency name="gdata/java/lib/gdata-media-1.0.jar">
+        <groupid>com.google.gdata</groupid>
+        <artifactid>gdata-media</artifactid>
+        <version>1.41.5</version>
+      </dependency>
+    </dependencies>
+  </artifact>
+  ...
+</artifacts>
++-------------------------------------------------------------------+
+
+Creating POM files
+
+  Once the result of the analysis fulfil your requirements, you may easily create POM files
+  by simply running the package phase.
+
+  You may define the directory where POM are created inside the project build directory:
+
++------------------------------------------------------------------------------------------------+
+        ...
+        <configuration>
+          ...
+          <pomBaseDir>${project.build.directory}/path/to/pom</pomBaseDir>
+          ...
+        </configuration>
+        ...
++------------------------------------------------------------------------------------------------+
+
+  If you define the POM base directory outside of the project build directory, you will
+  loose the benefit of the configuration since you will have to provide the POM yourself. This
+  will defeat the whole purpose of this plugin.
+
+Installing binaries in the local repository
+
+  To install the binary file defined in the mavenizer configuration file, it is really simple,
+  you just need to run the install phase.
+
++---------+
+mvn install
++---------+
+
+  You may decide whether to update the metadata to make installed artifacts a release version
+  by defining <<<updateReleaseInfo>>> to true in the configuration of this plugin.
+
+Deploying binaries to a remote repository
+
+  Before deploying artifacts, you need to define the remote repository where you expect
+  artifact to be deployed. Currently, this plugin does not use DistributionManagement
+  definition and require the configuration of the remote repository in its own configuration
+  like this:
+
++------------------------------------------------------------------------------------------------+
+        ...
+        <configuration>
+          ...
+          <repositoryId>my-repository-id</repositoryId>
+          <repositoryUrl>http://my.repository.com/content/repositories/myrepository</repositoryUrl>
+          ...
+        </configuration>
+        ...
++------------------------------------------------------------------------------------------------+
+  
+  To deploy the binary file defined in the mavenizer configuration file, it is now really simple,
+  you just need to run the deploy phase.
+
++---------+
+mvn deploy
++---------+
+
+  You may decide whether to update the metadata to make installed artifacts a release version
+  by defining <<<updateReleaseInfo>>> to true in the configuration of this plugin.
