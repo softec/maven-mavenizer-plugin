@@ -114,4 +114,4 @@ Examples
 
   For those who learn by example, we ready-made POM file for common non-maven projects:
 
-  * {{{./gdata-java.html}Google GData API for Java}}
+  * {{{./examples.html#Google_GData_API_for_Java}Google GData API for Java}}

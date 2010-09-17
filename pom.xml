@@ -8,7 +8,8 @@
   <packaging>maven-plugin</packaging>
 
   <name>Mavenizer Maven Plugin</name>
-  <description>Maven Plugin that aim to facilitate integration of non-maven binaries into a maven repository</description>
+  <description>Maven Plugin that aim to facilitate integration of non-maven binaries into a maven repository
+  </description>
   <url>http://mavenizer.softec.lu</url>
   <inceptionYear>2010</inceptionYear>
 
@@ -23,7 +24,7 @@
     <name>SOFTEC sa</name>
     <url>http://softec.lu/</url>
   </organization>
-  
+
   <developers>
     <developer>
       <id>DenisG</id>
@@ -106,7 +107,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -124,7 +125,7 @@
         <configuration>
           <encoding>UTF-8</encoding>
         </configuration>
-      </plugin>      
+      </plugin>
       <plugin>
         <artifactId>maven-plugin-plugin</artifactId>
         <version>2.6</version>
@@ -144,12 +145,12 @@
         </executions>
       </plugin>
       <plugin>
-          <artifactId>maven-site-plugin</artifactId>
-          <version>2.1.1</version>
-          <configuration>
-              <outputEncoding>${project.build.sourceEncoding}</outputEncoding>
-          </configuration>
-      </plugin>      
+        <artifactId>maven-site-plugin</artifactId>
+        <version>2.1.1</version>
+        <configuration>
+          <outputEncoding>${project.build.sourceEncoding}</outputEncoding>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -179,8 +180,8 @@
         </configuration>
       </plugin>
       <plugin>
-         <artifactId>maven-javadoc-plugin</artifactId>
-         <version>2.7</version>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.7</version>
       </plugin>
       <plugin>
         <artifactId>maven-jxr-plugin</artifactId>
@@ -193,8 +194,12 @@
     <repository>
       <id>central</id>
       <url>http://repo1.maven.org/maven2/</url>
-      <releases><enabled>true</enabled></releases>
-      <snapshots><enabled>false</enabled></snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
   </repositories>
 
@@ -202,8 +207,12 @@
     <pluginRepository>
       <id>central</id>
       <url>http://repo1.maven.org/maven2/</url>
-      <releases><enabled>true</enabled></releases>
-      <snapshots><enabled>false</enabled></snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </pluginRepository>
   </pluginRepositories>
 
@@ -213,5 +222,10 @@
       <name>Open Source Release Distribution Repository</name>
       <url>http://nexus.softec.lu:8081/content/repositories/opensource</url>
     </repository>
+    <site>
+      <id>softec-mavenizer-site</id>
+      <name>Mavenizer Plugin Documentation site</name>
+      <url>scp://mavenizer.softec.lu/home/mavenizer/site</url>
+    </site>
   </distributionManagement>
 </project>
