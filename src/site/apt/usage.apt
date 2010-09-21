@@ -37,6 +37,14 @@ Use the Mavenizer plugin lifecycle
     </plugins>
     ...
   </build>
+  ...
+  <pluginRepositories>
+    <pluginRepository>
+      <id>softec-opensource</id>
+      <url>http://nexus.softec.lu:8081/content/repositories/opensource</url>
+    </pluginRepository>
+  </pluginRepositories>
+  ...
 </project>
 +-------------------------------------------------------+
 

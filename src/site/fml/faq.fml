@@ -12,6 +12,81 @@
           of dependencies required by these non-maven libraries without requiring access to
           their sources, and very quickly compared to a complete conversion of the underlying
           project to Maven.
+
+        </p>
+      </answer>
+    </faq>
+    <faq id="where-to-get-it">
+      <question>Where can I get this plugin ?</question>
+      <answer>
+        <p>
+          Currently, the maven-mavenizer-plugin is NOT hosted on the maven central repository.
+          However, we have setup a public repository to host it, you just have to add
+          the following in your POM configuration:
+          <source>
+            <![CDATA[
+            <pluginRepositories>
+              ...
+              <pluginRepository>
+                <id>softec-opensource</id>
+                <url>http://nexus.softec.lu:8081/content/repositories/opensource</url>
+              </pluginRepository>
+              ...
+            </pluginRepositories>
+            ]]>
+          </source>
+        </p>
+      </answer>
+    </faq>
+    <faq id="david-carter-related">
+      <question>Is this project related to the Google-Data-APIs-Mavenized written by David Carter ?</question>
+      <answer>
+        <p>
+          This project has been written after carefull study of the idea of David Carter to mavenize
+          the Google data API and published in
+          <a href="http://github.com/dcarter/Google-Data-APIs-Mavenized" target="_blank">Google-Data-APIs-Mavenized</a>
+          project
+          on github.
+        </p>
+        <p>
+          By writing this plugin, we have tried to simplify the process proposed by David Carter while keeping
+          at the same time as much as possible all the features that he have proposed without writting
+          any plugin at all. Our strong felling was that his proposal is very flexible, but is also
+          extremely verbose which require a lot of attention and efforts to be adapted for other
+          libraries.
+        </p>
+      </answer>
+    </faq>
+    <faq id="cedric-vidal-related">
+      <question>Is this project related to the Mavenizer project written by Cédric Vidal ?</question>
+      <answer>
+        <p>
+          This project has been entirely written without even knowing that the
+          <a href="http://sourceforge.net/projects/mavenizer/" target="_blank">Mavenizer</a>
+          projet
+          written by Cédric Vidal and hosted on SourceForge exists.
+        </p>
+        <p>
+          Since both projects persue the same goal, they have obviously follow a very similar approach
+          at solving similar issues. There are also major differences between these projects, and compared
+          to the mavenizer project, the maven-mavenizer-plugin has, by its plugin nature, a better
+          integration with maven, in particular for the following aspects:
+        </p>
+        <ul>
+          <li>Launching and configuration is done using Maven</li>
+          <li>No need to download anything (just ensure proper plugin and plugin repository reference in mavenizer
+            POMs)
+          </li>
+          <li>Download and extract project archive to mavenize (if configured in the mavenizer POM)</li>
+          <li>Support maven dependencies for resolving dependencies during binaries analysis</li>
+          <li>Install and deploy resulting packages using standard maven procedure</li>
+        </ul>
+        <p>
+          Without false modesty, we sincerely see this plugin has the natural evolution of the
+          command-line solution provided earlier by Cédric Vidal. If you are a user of the mavenizer
+          command-line tools and you are also interessted in our plugin, but you have found any
+          useful feature of the former that we currently not support, feel free to request for
+          an enhancement on our issue tracking site. We will consider your request with attention.
         </p>
       </answer>
     </faq>
