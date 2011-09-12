@@ -54,7 +54,7 @@
   <scm>
     <connection>scm:git:git://github.com/softec/maven-mavenizer-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:softec/maven-mavenizer-plugin.git</developerConnection>
-    <url>http://github.com/softec/maven-mavenizer-plugin/</url>
+    <url>https://github.com/softec/maven-mavenizer-plugin/</url>
   </scm>
 
   <issueManagement>
@@ -109,6 +109,23 @@
   </properties>
 
   <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.scm</groupId>
+        <artifactId>maven-scm-provider-gitexe</artifactId>
+        <version>1.4</version>
+      </extension>
+      <extension>
+        <groupId>org.apache.maven.scm</groupId>
+        <artifactId>maven-scm-manager-plexus</artifactId>
+        <version>1.4</version>
+      </extension>
+      <extension>
+        <groupId>org.kathrynhuxtable.maven.wagon</groupId>
+        <artifactId>wagon-gitsite</artifactId>
+        <version>0.3.1</version>
+      </extension>
+    </extensions>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -222,5 +239,9 @@
       <name>Open Source Release Distribution Repository</name>
       <url>http://nexus.softec.lu:8081/content/repositories/opensource</url>
     </repository>
+    <site>
+      <id>github</id>
+      <url>gitsite:git@github.com/softec/maven-mavenizer-plugin.git</url>
+    </site>
   </distributionManagement>
 </project>
